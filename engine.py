@@ -32,7 +32,6 @@ def generate_random_name():
                 name += random.choice(consonants)
     return name
 
-
 class MapWarfare:
 
     def __init__(self, game_parameters):
@@ -69,14 +68,15 @@ class MapWarfare:
 
         self.current_id[nickname] = 0
 
-        # Create home base (building #0) if enough money is present
+        # Create home base (building #0), this is used by tests
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
-        '''
+        
+        # Add extra units to start off...
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
         self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
         self.new_player('asshole', 10)
-        '''
+        
         title = 'Hi {0}!'.format(nickname)
         message = 'Welcome to the game! Why don\'t you buy some units, you have {0}$ in your account...'.format(
             self.players[nickname]['account'])
@@ -97,7 +97,6 @@ class MapWarfare:
             avg = round(sum(all)/len(all),1)
         else:
             avg = 0
-        print 'before return'
         return self.players[nickname]['victory_points'] - avg
 
     def get_id(self, player):
@@ -1020,6 +1019,7 @@ class MapWarfare:
         all_agents.update(aggregate_agents(enemies, 'enemies'))
 
         apply_delay = []
+        dead = {}
 
         total_damage = {'starters': 0, 'enemies': 0}
         # execute shots in random order
@@ -1070,6 +1070,13 @@ class MapWarfare:
                                         'groups'][g_id]['units'][u_id]['parameters']['life'] -= attack
                                 else:
                                     # Delete the unit
+                                    try:
+                                        dead[ad[1]].append(self.players[
+                                            ad[1]]['groups'][g_id]['units'][u_id]['parameters']['name'])
+                                    except KeyError:
+                                        dead[ad[1]] = [self.players[
+                                            ad[1]]['groups'][g_id]['units'][u_id]['parameters']['name']]
+
                                     del self.players[
                                         ad[1]]['groups'][g_id]['units'][u_id]
                                     # delete the agent
@@ -1104,6 +1111,11 @@ class MapWarfare:
                                     self.players[ad[
                                         1]][ad[2]][ad[3]]['parameters']['life'] -= attack
                                 else:
+                                    try:
+                                        dead[ad[1]].append(self.players[ad[1]][ad[2]][ad[3]]['parameters']['name'])
+                                    except KeyError:
+                                        dead[ad[1]] = [self.players[ad[1]][ad[2]][ad[3]]['parameters']['name']]
+
                                     # Delete the object
                                     del self.players[ad[1]][ad[2]][ad[3]]
                                     # delete the agent
@@ -1180,6 +1192,8 @@ class MapWarfare:
                     shots_left = True
                     break
 
+        print dead
+
         # apply delay to all active units
         for ad in apply_delay:
             if ad[2] == 'groups':
@@ -1209,6 +1223,7 @@ class MapWarfare:
                         name = pl['buildings'][ind]['parameters']['name']
                         units[team].append(name)
 
+
         for team in ['starters', 'enemies']:
             occ = count(units[team])
             disp = []
@@ -1235,12 +1250,22 @@ class MapWarfare:
             msg += 'You: ' + str(total_damage['starters']) + '\n'
             msg += e + ': ' + str(total_damage['enemies']) + '\n'
 
-            print type(total_damage['starters']), total_damage['starters']
             if total_damage['starters'] > 0:
                 if units['enemies'] != '':
                     msg += '\nSurviving enemies:\n' + units['enemies']
                 else:
                     msg += '\nYou have erradicated\nall opposing units!'
+
+            try:
+                occ = count(dead[player])
+                disp = []
+                for u_type, num in occ.items():
+                    disp.append(str(num) + 'x ' + u_type)
+                player_dead = ', '.join(disp)
+
+                msg += '\nOur fallen heroes:\n' + player_dead
+            except KeyError:
+                pass
 
             msg_stack[player] = {'title': title, 'message': msg, 'popup': True}
 
@@ -1251,12 +1276,22 @@ class MapWarfare:
             msg += 'You: ' + str(total_damage['enemies']) + '\n'
             msg += s + ': ' + str(total_damage['starters']) + '\n'
 
-            print type(total_damage['enemies']), total_damage['enemies']
             if total_damage['enemies'] > 0:
                 if units['starters'] != '':
                     msg += '\nSurviving enemies:\n' + units['starters']
                 else:
                     msg += '\nYou have erradicated\nall opposing units!'
+
+            try:
+                occ = count(dead[player])
+                disp = []
+                for u_type, num in occ.items():
+                    disp.append(str(num) + 'x ' + u_type)
+                player_dead = ', '.join(disp)
+
+                msg += '\nOur fallen heroes:\n' + player_dead
+            except KeyError:
+                pass
 
             msg_stack[player] = {'title': title, 'message': msg, 'popup': True}
 

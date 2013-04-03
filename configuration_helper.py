@@ -1171,7 +1171,6 @@ class DetailPage(wx.Dialog):
         for param, value in to_display.items():
             if param not in ('actions', 'changes'):
                 if param in ('shop_units', 'shop_transporter', 'parameters'):
-                    print param, value
                     if type(value) not in (int, float):
                         value = [str(v) for v in value]
                         value = ','.join(value)
@@ -1671,7 +1670,6 @@ class DetailPage(wx.Dialog):
 
             elif param == 'shield_factor':
                 value = content[2].GetValue()
-                print param, value
                 value = float(value)
 
             else:

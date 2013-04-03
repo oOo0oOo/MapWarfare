@@ -8,7 +8,6 @@ from PodSixNet.Channel import Channel
 
 import engine
 
-
 class ServerUI(wx.Frame):
 
     '''This is the user interface to manage the server. it allows you to
