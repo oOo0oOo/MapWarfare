@@ -369,7 +369,7 @@ class MapWarfare:
                     adress = (o_id, u_id)
                 else:
                     adress = tuple([o_id])
-                make_changes(nickname, adress, action['changes'])
+                make_changes(nickname, adress, copy.deepcopy(action['changes']))
                 return True
 
             elif action['target'] in ('own', 'enemy'):
@@ -413,9 +413,12 @@ class MapWarfare:
                         ind = random.randrange(len(orig_adresses))
                         adresses.append(orig_adresses[ind])
 
+                print 'adresses', adresses
                 # Perform all the changes
                 for adress in adresses:
-                    make_changes(player, adress, action['changes'])
+                    print action['changes']
+                    print 'action', action
+                    make_changes(player, adress, copy.deepcopy(action['changes']))
                 return True
 
         return False
