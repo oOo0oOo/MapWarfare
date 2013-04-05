@@ -12,10 +12,10 @@ class MapWarfareClient(ConnectionListener):
     def __init__(self, host, port):
         print "Map Warfare client started"
         default = ('localhost', 31425)
-        host = raw_input("Please enter server IP:\n(default: %s) " % default[0])
+        host = raw_input("\nPlease enter server IP:\n(default: %s) " % default[0])
         if not host:
             host = default[0]
-        port = raw_input("Please enter port number:\n(default: %s) " % default[1])
+        port = raw_input("\nPlease enter port number:\n(default: %s) " % default[1])
         if not port:
             port = default[1]
         else:
@@ -23,7 +23,7 @@ class MapWarfareClient(ConnectionListener):
 
         self.Connect((host, port))
 
-        nickname = raw_input("Enter your nickname:\n")
+        nickname = raw_input("\nEnter your nickname:\n")
         sector = int(raw_input("\nStart Sector:\n"))
         connection.Send(
             {"action": "register", "nickname": nickname, 'sector': sector})
