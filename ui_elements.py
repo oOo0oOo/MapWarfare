@@ -2056,14 +2056,14 @@ class Icon(wx.Panel):
             delay_max = 0
             life = 0
             attack = 0
-            walk_dist = 0
+            walk_dist = 1000000
             for u in obj['units'].values():
                 u_p = u['parameters']
                 if u['delay'] > delay_max:
                     delay_max = u['delay']
                 if u['delay'] < delay_min:
                     delay_min = u['delay']
-                if u_p['walk_dist'] > walk_dist and obj['transporter'] == -1 and u['building'] == -1:
+                if u_p['walk_dist'] < walk_dist and obj['transporter'] == -1 and u['building'] == -1:
                     walk_dist = u_p['walk_dist']
 
                 attack += round((u_p['attack_min']+u_p['attack_max'])/float(2))
@@ -2087,8 +2087,8 @@ class Icon(wx.Panel):
         self.delay_bar.SetValue(val)
 
         self.attack_text.SetLabel(str(int(attack)))
-        self.life_text.SetLabel(str(life))
-        self.walk_text.SetLabel(str(walk_dist))
+        self.life_text.SetLabel(str(int(life)))
+        self.walk_text.SetLabel(str(int(walk_dist)))
 
         self.number.SetLabel(str(self.o_id))
         self.name.SetLabel(obj['name'])
