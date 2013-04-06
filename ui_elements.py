@@ -1,6 +1,7 @@
 import wx
 import wx.lib.buttons as buttons
 import wx.lib.scrolledpanel as scrolled
+import wx.lib.agw.pygauge as pg
 import action_wizard
 from collections import Counter
 
@@ -306,8 +307,13 @@ class Header(wx.Panel):
 
         #Display victory difference
 
-        self.victory = wx.Gauge(self, -1, 100, (110, 50), (200, 25))
+        self.victory = pg.PyGauge(self, -1, size=(100,20),style=wx.GA_HORIZONTAL)
+        self.victory.SetBackgroundColour(colors[1])
+        self.victory.SetBorderColor(colors[0])
+        self.victory.SetBarColor(colors[2])
+
         self.main_sizer.Add(self.victory)
+        self.main_sizer.AddSpacer(50)
 
         self.play_button = buttons.GenBitmapToggleButton(
             self, -1, self.all_graphics['button_play'],
@@ -326,8 +332,7 @@ class Header(wx.Panel):
         self.connection.Send({'action': 'run_ticks', 'status': status})
 
     def set_max(self, maximum):
-        self.victory.SetRange(2 * maximum)
-        self.middle = maximum
+        self.middle = int(maximum / 2)
 
     def update_status(self, status):
 
@@ -335,7 +340,10 @@ class Header(wx.Panel):
             if param != 'diff':
                 self.displayed[param].SetLabel(str(value))
             else:
-                self.victory.SetValue(self.middle + value)
+                val = (self.middle + float(value)) / (2 * self.middle)
+                val = int(round(float(self.middle + value)/(2 * self.middle)*100))
+                self.victory.SetValue(val)
+                self.victory.Refresh()
 
         # self.Layout()
 
@@ -1905,23 +1913,13 @@ class Icon(wx.Panel):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.all_graphics = all_graphics
 
-        self.SetBackgroundColour(colors[1])
         self.o_id = o_id
-        title = str(o_id)
-        if len(obj['name']) > 0:
-            title += ': ' + obj['name']
+        #title = str(o_id)
+        #if len(obj['name']) > 0:
+        #    title += ': ' + obj['name']
 
-        self.top_level_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.top_level_sizer.SetMinSize((150, 80))
-
-        self.top_level_sizer.AddSpacer(2)
-        self.title = wx.StaticText(self, -1, title)
-        self.top_level_sizer.Add(self.title)
-        self.top_level_sizer.AddSpacer(5)
-
-        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.top_level_sizer.Add(self.main_sizer)
-
+        #self.top_level_sizer.Add(self.title)
+        #self.top_level_sizer.AddSpacer(5)
         if object_type == 'building':
             ind = str(obj['parameters']['id'])
             img = 'building_' + ind
@@ -1954,68 +1952,83 @@ class Icon(wx.Panel):
             bmp_normal = all_graphics['unknown']
             bmp_selected = all_graphics['unknown_mo']
 
-        left_sizer = wx.BoxSizer(wx.VERTICAL)
         self.select_btn = buttons.GenBitmapToggleButton(
             self, bitmap=bmp_normal, size=(45, 45), name=str(o_id), style = wx.BORDER_NONE)
         self.select_btn.SetBitmapSelected(bmp_selected)
         self.Bind(wx.EVT_BUTTON, self.icon_selected, self.select_btn)
 
+        #self.icon_delay = wx.BitmapButton(
+        #    self, -1, bitmap=self.all_graphics['icon_red'], style=wx.BORDER_NONE)
+        #self.icon_delay.SetBackgroundColour(colors[1])
+        #self.icon_delay.SetBitmapDisabled(self.all_graphics['icon_green'])
+        #self.delay_text = wx.StaticText(self, -1, '0')
+
+        self.delay_bar = pg.PyGauge(self, -1, size=(70,10),style=wx.GA_HORIZONTAL)
+        self.delay_bar.SetBackgroundColour(colors[1])
+        self.delay_bar.SetBorderColor(colors[0])
+        self.delay_bar.SetBarColor(colors[2])
+
+        self.number = wx.StaticText(self, wx.ID_ANY, '')
+        self.attack_text = wx.StaticText(self, wx.ID_ANY, '')
+        self.life_text = wx.StaticText(self, wx.ID_ANY, '')
+        self.walk_text = wx.StaticText(self, wx.ID_ANY, '')
+            
+        self.DoLayout()
+        self.update_icon(obj)
+        # self.Layout()
+
+        # Switch the unit to no delay (icon and hide delay text)
+        #self.icon_delay.Enable(False)
+
+    def DoLayout(self):
+
+        self.SetBackgroundColour(colors[1])
+
+        top_level_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_level_sizer.SetMinSize((130, 80))
+
+        top_level_sizer.AddSpacer(10)
+        #self.title = wx.StaticText(self, -1, title)
+
+
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_level_sizer.Add(main_sizer)
+
+
+        left_sizer = wx.BoxSizer(wx.VERTICAL)
+
         hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.icon_delay = wx.BitmapButton(
-            self, -1, bitmap=self.all_graphics['icon_red'], style=wx.BORDER_NONE)
-        self.icon_delay.SetBackgroundColour(colors[1])
-        self.icon_delay.SetBitmapDisabled(self.all_graphics['icon_green'])
+        hor_sizer.AddSpacer(10)
 
-        self.delay_text = wx.StaticText(self, -1, '0')
+        hor_sizer.Add(self.number)
+        hor_sizer.AddSpacer(10)
+        
+        hor_sizer.Add(self.select_btn)
 
-        hor_sizer.Add(self.icon_delay)
-        hor_sizer.AddSpacer(5)
-        hor_sizer.Add(self.delay_text)
-
-        left_sizer.Add(self.select_btn)
-        left_sizer.AddSpacer(5)
         left_sizer.Add(hor_sizer)
+        left_sizer.AddSpacer(5)
+        left_sizer.Add(self.delay_bar)
 
-        self.main_sizer.Add(left_sizer)
-        self.main_sizer.AddSpacer(10)
+        main_sizer.Add(left_sizer)
+        main_sizer.AddSpacer(10)
 
-        # Transporter main stats
         parameter_sizer = wx.BoxSizer(wx.VERTICAL)
-        attack = str((obj['parameters']['attack_min'] + obj[
-                     'parameters']['attack_max']) / 2)
-        life = str(obj['parameters']['life'])
-
-        self.attack_text = wx.StaticText(self, wx.ID_ANY, attack)
-        self.life_text = wx.StaticText(self, wx.ID_ANY, life)
-
         attack_sizer = wx.BoxSizer(wx.HORIZONTAL)
         life_sizer = wx.BoxSizer(wx.HORIZONTAL)
         walk_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        # delay_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         attack_sizer.Add(
-            wx.StaticBitmap(self, wx.ID_ANY, all_graphics['icon_attack']))
+            wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_attack']))
         attack_sizer.AddSpacer(5)
         attack_sizer.Add(self.attack_text)
 
         life_sizer.Add(
-            wx.StaticBitmap(self, wx.ID_ANY, all_graphics['icon_life']))
+            wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_life']))
         life_sizer.AddSpacer(5)
         life_sizer.Add(self.life_text)
-
-        # delay_sizer.Add(wx.StaticBitmap(self, wx.ID_ANY, all_graphics['icon_delay']))
-        # delay_sizer.AddSpacer(5)
-        # delay_sizer.Add(self.delay_text)
-
-        try:
-            walk_dist = str(obj['parameters']['walk_dist'])
-            self.walk_text = wx.StaticText(self, wx.ID_ANY, walk_dist)
-            walk_sizer.Add(wx.StaticBitmap(
-                self, wx.ID_ANY, all_graphics['icon_walk_dist']))
-            walk_sizer.AddSpacer(5)
-            walk_sizer.Add(self.walk_text)
-        except KeyError:
-            pass
+        walk_sizer.Add(wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_walk_dist']))
+        walk_sizer.AddSpacer(5)
+        walk_sizer.Add(self.walk_text)
 
         parameter_sizer.Add(attack_sizer)
         parameter_sizer.AddSpacer(5)
@@ -2023,12 +2036,8 @@ class Icon(wx.Panel):
         parameter_sizer.AddSpacer(5)
         parameter_sizer.Add(walk_sizer)
 
-        self.main_sizer.Add(parameter_sizer)
-        self.SetSizer(self.top_level_sizer)
-        # self.Layout()
-
-        # Switch the unit to no delay (icon and hide delay text)
-        self.icon_delay.Enable(False)
+        main_sizer.Add(parameter_sizer)
+        self.SetSizer(top_level_sizer)
 
     def update_icon(self, obj):
         if 'units' in obj.keys():
@@ -2040,38 +2049,40 @@ class Icon(wx.Panel):
                 if unit['delay'] < delay_min:
                     delay_min = unit['delay']
 
-            if delay_min != delay_max:
-                delay = str(delay_min) + '-' + str(delay_max)
-            else:
-                delay = str(delay_min)
-
         else:
             delay_min = obj['delay']
-            delay = str(delay_min)
+            delay_max = obj['delay']
 
-        self.delay_text.SetLabel(delay)
+        if delay_max > 20:
+            delay_max = 20
+
+        val = int(round(float(delay_max)/20*100))
+        self.delay_bar.SetValue(val)
 
         # Display the special icon if the delay is zero
-        if delay_min == 0:
-            self.icon_delay.Enable(False)
-        else:
-            self.icon_delay.Enable(True)
+        #if delay_min == 0:
+        #    self.icon_delay.Enable(False)
+        #else:
+        #    self.icon_delay.Enable(True)
+
+        #self.delay_text.SetLabel(delay)
 
         attack = str((obj['parameters']['attack_min'] + obj[
                      'parameters']['attack_max']) / 2)
         life = str(obj['parameters']['life'])
-        self.attack_text.SetLabel(attack)
-        self.life_text.SetLabel(life)
+
         try:
             walk_dist = str(obj['parameters']['walk_dist'])
-            self.walk_text.SetLabel(walk_dist)
         except KeyError:
-            pass
+            walk_dist = '0'
 
-        title = str(self.o_id)
-        if len(obj['name']) > 0:
-            title += ': ' + obj['name']
-        self.title.SetLabel(title)
+        self.attack_text.SetLabel(attack)
+        self.life_text.SetLabel(life)
+        self.walk_text.SetLabel(walk_dist)
+
+        self.number.SetLabel(str(self.o_id))
+
+        self.delay_bar.Refresh()
 
     def icon_selected(self, e):
         e.Skip()
