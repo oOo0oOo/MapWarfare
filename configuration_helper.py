@@ -5,7 +5,6 @@ import pickle
 import wx.lib.scrolledpanel as scrolled
 from configuration_tester import FightTester as Tester
 
-
 class ConfigurationHelper(wx.Dialog):
     def __init__(self):
         wx.Dialog.__init__(
@@ -1491,7 +1490,7 @@ class DetailPage(wx.Dialog):
 
             else:
                 try:
-                    value = int(value)
+                    value = int(float(value))
                 except ValueError:
                     pass
 

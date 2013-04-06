@@ -1831,6 +1831,7 @@ class IconPanel(scrolled.ScrolledPanel):
         self.all_graphics = all_graphics
 
         self.icon_sizer = wx.GridSizer(10, 6)
+        self.relayout = False
 
         self.SetSizer(self.icon_sizer)
         self.SetupScrolling(False, True)
@@ -1914,7 +1915,12 @@ class IconPanel(scrolled.ScrolledPanel):
             del self.displayed[o_id]
 
         if added:
-            self.FitInside()
+            print 'len displayed left', len(self.displayed.keys())
+            if len(self.displayed.keys()) == 19:
+                # IMPLEMENT: Find which condition to renew frame...
+                self.FitInside()
+            else:
+                self.FitInside()
 
     def shortcut_used(self, o_id):
         for id in self.displayed.keys():
@@ -1974,12 +1980,6 @@ class Icon(wx.Panel):
         self.select_btn.SetBitmapSelected(bmp_selected)
         self.Bind(wx.EVT_BUTTON, self.icon_selected, self.select_btn)
 
-        # self.icon_delay = wx.BitmapButton(
-        #    self, -1, bitmap=self.all_graphics['icon_red'], style=wx.BORDER_NONE)
-        # self.icon_delay.SetBackgroundColour(colors[1])
-        # self.icon_delay.SetBitmapDisabled(self.all_graphics['icon_green'])
-        # self.delay_text = wx.StaticText(self, -1, '0')
-
         self.delay_bar = pg.PyGauge(self, -1, size=(80, 10), style=wx.GA_HORIZONTAL)
         self.delay_bar.SetBackgroundColour(colors[1])
         self.delay_bar.SetBorderColor(colors[0])
@@ -2002,10 +2002,6 @@ class Icon(wx.Panel):
 
         self.DoLayout()
         self.update_icon(obj)
-        # self.Layout()
-
-        # Switch the unit to no delay (icon and hide delay text)
-        # self.icon_delay.Enable(False)
 
     def DoLayout(self):
 
@@ -2014,28 +2010,22 @@ class Icon(wx.Panel):
         top_level_sizer = wx.BoxSizer(wx.VERTICAL)
         top_level_sizer.SetMinSize((150, 80))
 
-        top_level_sizer.AddSpacer(5)
-        # self.title = wx.StaticText(self, -1, title)
-
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        top_level_sizer.Add(main_sizer)
+        top_level_sizer.Add(main_sizer, 0, wx.TOP, 5)
 
         left_sizer = wx.BoxSizer(wx.VERTICAL)
 
         hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        hor_sizer.AddSpacer(5)
-        hor_sizer.Add(self.number)
-        hor_sizer.AddSpacer(5)
-        hor_sizer.Add(self.select_btn)
+        hor_sizer.Add(self.number, 0, wx.LEFT, 5)
+        hor_sizer.Add(self.select_btn, 0, wx.LEFT, 5)
 
         left_sizer.Add(hor_sizer)
         left_sizer.AddSpacer(2)
-        left_sizer.Add(self.name, 5, wx.LEFT)
+        left_sizer.Add(self.name, 0, wx.LEFT, 5)
         left_sizer.AddSpacer(2)
-        left_sizer.Add(self.delay_bar, 5, wx.LEFT)
+        left_sizer.Add(self.delay_bar, 0, wx.LEFT, 5)
 
-        main_sizer.Add(left_sizer)
-        main_sizer.AddSpacer(10)
+        main_sizer.Add(left_sizer, 0, wx.RIGHT, 10)
 
         parameter_sizer = wx.BoxSizer(wx.VERTICAL)
         attack_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -2044,22 +2034,18 @@ class Icon(wx.Panel):
 
         attack_sizer.Add(
             wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_attack']))
-        attack_sizer.AddSpacer(3)
-        attack_sizer.Add(self.attack_text, 0, wx.ALIGN_CENTER_VERTICAL)
+        attack_sizer.Add(self.attack_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 3)
 
         life_sizer.Add(
             wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_life']))
-        life_sizer.AddSpacer(3)
-        life_sizer.Add(self.life_text, 0, wx.ALIGN_CENTER_VERTICAL)
+        life_sizer.Add(self.life_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 3)
+
         walk_sizer.Add(wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_walk_dist']))
-        walk_sizer.AddSpacer(3)
-        walk_sizer.Add(self.walk_text, 0, wx.ALIGN_CENTER_VERTICAL)
+        walk_sizer.Add(self.walk_text, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 3)
 
         parameter_sizer.Add(attack_sizer)
-        parameter_sizer.AddSpacer(5)
-        parameter_sizer.Add(life_sizer)
-        parameter_sizer.AddSpacer(5)
-        parameter_sizer.Add(walk_sizer)
+        parameter_sizer.Add(life_sizer, 0, wx.TOP, 5)
+        parameter_sizer.Add(walk_sizer, 0, wx.TOP, 5)
 
         main_sizer.Add(parameter_sizer)
         self.SetSizer(top_level_sizer)
@@ -2091,7 +2077,7 @@ class Icon(wx.Panel):
             try:
                 walk_dist = o_p['walk_dist']
             except KeyError:
-                #Buildings do not have a walk_dist
+                # Buildings do not have a walk_dist
                 walk_dist = 0
 
         if delay_max > 20:
