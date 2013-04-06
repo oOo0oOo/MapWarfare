@@ -10,6 +10,7 @@ EVT_INITIATE_ACTION = wx.PyEventBinder(INITIATE_ACTION, 1)
 
 
 class ActionEvent(wx.PyCommandEvent):
+
     def __init__(self, evtType, ind, action_type=None,
                  o_id=None, u_id=None, action_name=None):
         wx.PyCommandEvent.__init__(self, evtType, ind)
@@ -29,7 +30,9 @@ colors[0] = '#000000'  # Main background (dark dark blue)
 colors[1] = '#139EC7'  # Used as main background for most panels (light blue)
 colors[2] = '#046380'  # Used as background for the summary panel (darker blue)
 
+
 class MainFrame(wx.Frame):
+
     def __init__(self, parent, title, all_graphics, connection):
         wx.Frame.__init__(self, parent, title=title, size=(1366, 710))
         self.connection = connection
@@ -245,6 +248,7 @@ class MainFrame(wx.Frame):
 
 
 class CardPanel(wx.Panel):
+
     def __init__(self, parent, all_graphics):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.all_graphics = all_graphics
@@ -284,6 +288,7 @@ class CardPanel(wx.Panel):
 
 
 class Header(wx.Panel):
+
     def __init__(self, parent, all_graphics, connection):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(1000, -1))
         self.connection = connection
@@ -305,9 +310,9 @@ class Header(wx.Panel):
             self.main_sizer.Add(self.displayed[param])
             self.main_sizer.AddSpacer(20)
 
-        #Display victory difference
+        # Display victory difference
 
-        self.victory = pg.PyGauge(self, -1, size=(100,20),style=wx.GA_HORIZONTAL)
+        self.victory = pg.PyGauge(self, -1, size=(100, 20), style=wx.GA_HORIZONTAL)
         self.victory.SetBackgroundColour(colors[1])
         self.victory.SetBorderColor(colors[0])
         self.victory.SetBarColor(colors[2])
@@ -352,6 +357,7 @@ class Header(wx.Panel):
 
 
 class BottomPanel(wx.Panel):
+
     def __init__(self, parent, all_graphics, connection):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(1330, 320))
         self.all_graphics = all_graphics
@@ -608,6 +614,7 @@ class BottomPanel(wx.Panel):
 
 
 class Summary(wx.Panel):
+
     def __init__(self, parent, all_graphics):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.all_graphics = all_graphics
@@ -701,7 +708,8 @@ class Summary(wx.Panel):
             'max_delay': 0, 'min_delay': 1000, 'min_walk_dist': 1000, 'max_walk_dist': 0,
             'min_delay_shoot': 1000, 'max_delay_shoot': 0,
             'min_delay_walk': 1000, 'max_delay_walk': 0,
-            'min_shoot_dist': 1000, 'max_shoot_dist': 0, 'sectors': []}
+            'min_shoot_dist': 1000, 'max_shoot_dist': 0, 'sectors': []
+        }
 
         all_obj = []
 
@@ -828,6 +836,7 @@ class Summary(wx.Panel):
 
 
 class MoveUnits(wx.Dialog):
+
     def __init__(self, parent, selected_groups, all_graphics, connection):
         wx.Dialog.__init__(self, parent,
                            title='Move Units between Groups', size=(800, 600))
@@ -921,6 +930,7 @@ class MoveUnits(wx.Dialog):
 
 
 class ActionCategory(wx.Dialog):
+
     def __init__(self, parent, title, actions, all_graphics):
         wx.Dialog.__init__(self, parent, title=title, size=(200, 250))
         self.all_graphics = all_graphics
@@ -982,7 +992,9 @@ class ActionCategory(wx.Dialog):
     def on_quit(self, evt):
         self.EndModal(False)
 
+
 class Shop(wx.Panel):
+
     def __init__(self, parent, all_graphics, connection, game_parameters, building, b_id):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.game_parameters = game_parameters
@@ -1027,7 +1039,7 @@ class Shop(wx.Panel):
                     image = self.all_graphics['unit_' + str(ind)]
                 except KeyError:
                     image = self.all_graphics['unknown']
-                    
+
                 u['image'] = wx.BitmapButton(self, bitmap=image, name=str(
                     ind) + ',image', style=wx.BORDER_NONE)
                 u['image'].Bind(wx.EVT_BUTTON, self.on_button)
@@ -1212,6 +1224,7 @@ class Shop(wx.Panel):
 
 
 class SelectionDetails(wx.Panel):
+
     '''Displayed overall details:
     Attack (per distance), Life, walk distance, some units in building,
     some units protected, group transported, number of units,
@@ -1277,7 +1290,8 @@ class SelectionDetails(wx.Panel):
 
 
 class Unit(wx.Panel):
-    '''Displayed as image: unit (incl health), elite, building, protected,
+
+    '''Displayed as image: unit, elite, building, protected,
 
     as text: delay left, life, attack, dist shoot, dist walk, age, total_damage
     actions as buttons in separate scrolled panel'''
@@ -1481,6 +1495,7 @@ class Unit(wx.Panel):
 
 
 class ObjSummary(wx.Panel):
+
     '''Displayed as image: unit (incl health), elite, building, protected,
 
     as text: delay left, life, attack, dist shoot, dist walk, age, total_damage
@@ -1747,6 +1762,7 @@ class ObjSummary(wx.Panel):
 
 
 class ActionPanel(wx.Panel):
+
     def __init__(self, parent, all_graphics):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(825, 50))
         self.all_graphics = all_graphics
@@ -1807,6 +1823,7 @@ class ActionPanel(wx.Panel):
 
 
 class IconPanel(scrolled.ScrolledPanel):
+
     def __init__(self, parent, all_graphics):
         scrolled.ScrolledPanel.__init__(self, parent, -1, size=(1000, 300))
         self.all_graphics = all_graphics
@@ -1909,17 +1926,18 @@ class IconPanel(scrolled.ScrolledPanel):
 
 
 class Icon(wx.Panel):
+
     def __init__(self, parent, object_type, o_id, obj, all_graphics):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.all_graphics = all_graphics
 
         self.o_id = o_id
-        #title = str(o_id)
-        #if len(obj['name']) > 0:
+        # title = str(o_id)
+        # if len(obj['name']) > 0:
         #    title += ': ' + obj['name']
 
-        #self.top_level_sizer.Add(self.title)
-        #self.top_level_sizer.AddSpacer(5)
+        # self.top_level_sizer.Add(self.title)
+        # self.top_level_sizer.AddSpacer(5)
         if object_type == 'building':
             ind = str(obj['parameters']['id'])
             img = 'building_' + ind
@@ -1957,28 +1975,30 @@ class Icon(wx.Panel):
         self.select_btn.SetBitmapSelected(bmp_selected)
         self.Bind(wx.EVT_BUTTON, self.icon_selected, self.select_btn)
 
-        #self.icon_delay = wx.BitmapButton(
+        # self.icon_delay = wx.BitmapButton(
         #    self, -1, bitmap=self.all_graphics['icon_red'], style=wx.BORDER_NONE)
-        #self.icon_delay.SetBackgroundColour(colors[1])
-        #self.icon_delay.SetBitmapDisabled(self.all_graphics['icon_green'])
-        #self.delay_text = wx.StaticText(self, -1, '0')
+        # self.icon_delay.SetBackgroundColour(colors[1])
+        # self.icon_delay.SetBitmapDisabled(self.all_graphics['icon_green'])
+        # self.delay_text = wx.StaticText(self, -1, '0')
 
-        self.delay_bar = pg.PyGauge(self, -1, size=(70,10),style=wx.GA_HORIZONTAL)
+        self.delay_bar = pg.PyGauge(self, -1, size=(70, 10), style=wx.GA_HORIZONTAL)
         self.delay_bar.SetBackgroundColour(colors[1])
         self.delay_bar.SetBorderColor(colors[0])
         self.delay_bar.SetBarColor(colors[2])
 
         self.number = wx.StaticText(self, wx.ID_ANY, '')
+        self.number.SetFont(wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+
         self.attack_text = wx.StaticText(self, wx.ID_ANY, '')
         self.life_text = wx.StaticText(self, wx.ID_ANY, '')
         self.walk_text = wx.StaticText(self, wx.ID_ANY, '')
-            
+
         self.DoLayout()
         self.update_icon(obj)
         # self.Layout()
 
         # Switch the unit to no delay (icon and hide delay text)
-        #self.icon_delay.Enable(False)
+        # self.icon_delay.Enable(False)
 
     def DoLayout(self):
 
@@ -1987,22 +2007,20 @@ class Icon(wx.Panel):
         top_level_sizer = wx.BoxSizer(wx.VERTICAL)
         top_level_sizer.SetMinSize((130, 80))
 
-        top_level_sizer.AddSpacer(10)
-        #self.title = wx.StaticText(self, -1, title)
-
+        top_level_sizer.AddSpacer(5)
+        # self.title = wx.StaticText(self, -1, title)
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         top_level_sizer.Add(main_sizer)
 
-
         left_sizer = wx.BoxSizer(wx.VERTICAL)
 
         hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        hor_sizer.AddSpacer(10)
+        hor_sizer.AddSpacer(2)
 
         hor_sizer.Add(self.number)
-        hor_sizer.AddSpacer(10)
-        
+        hor_sizer.AddSpacer(2)
+
         hor_sizer.Add(self.select_btn)
 
         left_sizer.Add(hor_sizer)
@@ -2060,12 +2078,12 @@ class Icon(wx.Panel):
         self.delay_bar.SetValue(val)
 
         # Display the special icon if the delay is zero
-        #if delay_min == 0:
+        # if delay_min == 0:
         #    self.icon_delay.Enable(False)
-        #else:
+        # else:
         #    self.icon_delay.Enable(True)
 
-        #self.delay_text.SetLabel(delay)
+        # self.delay_text.SetLabel(delay)
 
         attack = str((obj['parameters']['attack_min'] + obj[
                      'parameters']['attack_max']) / 2)
@@ -2089,6 +2107,7 @@ class Icon(wx.Panel):
 
 
 class MessageBoard(wx.Panel):
+
     def __init__(self, parent, size_display, all_graphics):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY)
         self.size_display = size_display
@@ -2158,6 +2177,7 @@ class MessageBoard(wx.Panel):
 
 
 class PlayCard(wx.Dialog):
+
     def __init__(self, parent, size_display, all_graphics, connection):
         wx.Dialog.__init__(self, parent, 'Play a Card')
         self.size_display = size_display
