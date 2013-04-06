@@ -413,11 +413,8 @@ class MapWarfare:
                         ind = random.randrange(len(orig_adresses))
                         adresses.append(orig_adresses[ind])
 
-                print 'adresses', adresses
                 # Perform all the changes
                 for adress in adresses:
-                    print action['changes']
-                    print 'action', action
                     make_changes(player, adress, copy.deepcopy(action['changes']))
                 return True
 
@@ -1194,8 +1191,6 @@ class MapWarfare:
                 if agent['num_shots'] > 0:
                     shots_left = True
                     break
-
-        print dead
 
         # apply delay to all active units
         for ad in apply_delay:
