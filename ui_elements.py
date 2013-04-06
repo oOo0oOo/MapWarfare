@@ -717,6 +717,7 @@ class Summary(wx.Panel):
         some_walk_dist = False
 
         for ind in selected_ids:
+            sector = False
             if ind in self.game_obj['groups'].keys():
                 sector = self.game_obj['groups'][ind]['sector']
                 for unit in self.game_obj['groups'][ind]['units'].values():
@@ -741,8 +742,9 @@ class Summary(wx.Panel):
                 sector = self.game_obj['buildings'][ind]['sector']
                 all_obj.append(self.game_obj['buildings'][ind])
 
-            if sector not in par['sectors']:
-                par['sectors'].append(sector)
+            if sector:
+                if sector not in par['sectors']:
+                    par['sectors'].append(sector)
 
         for obj in all_obj:
             obj_par = obj['parameters']
@@ -1832,7 +1834,7 @@ class IconPanel(scrolled.ScrolledPanel):
 
         self.SetSizer(self.icon_sizer)
         self.SetupScrolling(False, True)
-        self.SetAutoLayout(1)
+        # self.SetAutoLayout(1)
         self.displayed = {}
 
     def update_displayed(self, game_obj):
@@ -1932,9 +1934,6 @@ class Icon(wx.Panel):
         self.all_graphics = all_graphics
 
         self.o_id = o_id
-        # title = str(o_id)
-        # if len(obj['name']) > 0:
-        #    title += ': ' + obj['name']
 
         # self.top_level_sizer.Add(self.title)
         # self.top_level_sizer.AddSpacer(5)
@@ -1981,10 +1980,13 @@ class Icon(wx.Panel):
         # self.icon_delay.SetBitmapDisabled(self.all_graphics['icon_green'])
         # self.delay_text = wx.StaticText(self, -1, '0')
 
-        self.delay_bar = pg.PyGauge(self, -1, size=(70, 10), style=wx.GA_HORIZONTAL)
+        self.delay_bar = pg.PyGauge(self, -1, size=(80, 10), style=wx.GA_HORIZONTAL)
         self.delay_bar.SetBackgroundColour(colors[1])
         self.delay_bar.SetBorderColor(colors[0])
         self.delay_bar.SetBarColor(colors[2])
+
+        self.name = wx.StaticText(self, wx.ID_ANY, '')
+        self.name.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
         self.number = wx.StaticText(self, wx.ID_ANY, '')
         self.number.SetFont(wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
@@ -1992,6 +1994,11 @@ class Icon(wx.Panel):
         self.attack_text = wx.StaticText(self, wx.ID_ANY, '')
         self.life_text = wx.StaticText(self, wx.ID_ANY, '')
         self.walk_text = wx.StaticText(self, wx.ID_ANY, '')
+
+        parameter_font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        self.attack_text.SetFont(parameter_font)
+        self.life_text.SetFont(parameter_font)
+        self.walk_text.SetFont(parameter_font)
 
         self.DoLayout()
         self.update_icon(obj)
@@ -2005,7 +2012,7 @@ class Icon(wx.Panel):
         self.SetBackgroundColour(colors[1])
 
         top_level_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_level_sizer.SetMinSize((130, 80))
+        top_level_sizer.SetMinSize((150, 80))
 
         top_level_sizer.AddSpacer(5)
         # self.title = wx.StaticText(self, -1, title)
@@ -2016,16 +2023,16 @@ class Icon(wx.Panel):
         left_sizer = wx.BoxSizer(wx.VERTICAL)
 
         hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        hor_sizer.AddSpacer(2)
-
+        hor_sizer.AddSpacer(5)
         hor_sizer.Add(self.number)
-        hor_sizer.AddSpacer(2)
-
+        hor_sizer.AddSpacer(5)
         hor_sizer.Add(self.select_btn)
 
         left_sizer.Add(hor_sizer)
-        left_sizer.AddSpacer(5)
-        left_sizer.Add(self.delay_bar)
+        left_sizer.AddSpacer(2)
+        left_sizer.Add(self.name, 5, wx.LEFT)
+        left_sizer.AddSpacer(2)
+        left_sizer.Add(self.delay_bar, 5, wx.LEFT)
 
         main_sizer.Add(left_sizer)
         main_sizer.AddSpacer(10)
@@ -2037,16 +2044,16 @@ class Icon(wx.Panel):
 
         attack_sizer.Add(
             wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_attack']))
-        attack_sizer.AddSpacer(5)
-        attack_sizer.Add(self.attack_text)
+        attack_sizer.AddSpacer(3)
+        attack_sizer.Add(self.attack_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
         life_sizer.Add(
             wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_life']))
-        life_sizer.AddSpacer(5)
-        life_sizer.Add(self.life_text)
+        life_sizer.AddSpacer(3)
+        life_sizer.Add(self.life_text, 0, wx.ALIGN_CENTER_VERTICAL)
         walk_sizer.Add(wx.StaticBitmap(self, wx.ID_ANY, self.all_graphics['icon_walk_dist']))
-        walk_sizer.AddSpacer(5)
-        walk_sizer.Add(self.walk_text)
+        walk_sizer.AddSpacer(3)
+        walk_sizer.Add(self.walk_text, 0, wx.ALIGN_CENTER_VERTICAL)
 
         parameter_sizer.Add(attack_sizer)
         parameter_sizer.AddSpacer(5)
@@ -2061,15 +2068,31 @@ class Icon(wx.Panel):
         if 'units' in obj.keys():
             delay_min = 1000
             delay_max = 0
-            for unit in obj['units'].values():
-                if unit['delay'] > delay_max:
-                    delay_max = unit['delay']
-                if unit['delay'] < delay_min:
-                    delay_min = unit['delay']
+            life = 0
+            attack = 0
+            walk_dist = 0
+            for u in obj['units'].values():
+                u_p = u['parameters']
+                if u['delay'] > delay_max:
+                    delay_max = u['delay']
+                if u['delay'] < delay_min:
+                    delay_min = u['delay']
+                if u_p['walk_dist'] > walk_dist:
+                    walk_dist = u_p['walk_dist']
 
+                attack += round((u_p['attack_min']+u_p['attack_max'])/float(2))
+                life += u_p['life']
         else:
+            o_p = obj['parameters']
             delay_min = obj['delay']
             delay_max = obj['delay']
+            life = o_p['life']
+            attack = round((o_p['attack_min']+o_p['attack_max'])/float(2))
+            try:
+                walk_dist = o_p['walk_dist']
+            except KeyError:
+                #Buildings do not have a walk_dist
+                walk_dist = 0
 
         if delay_max > 20:
             delay_max = 20
@@ -2077,28 +2100,12 @@ class Icon(wx.Panel):
         val = int(round(float(delay_max)/20*100))
         self.delay_bar.SetValue(val)
 
-        # Display the special icon if the delay is zero
-        # if delay_min == 0:
-        #    self.icon_delay.Enable(False)
-        # else:
-        #    self.icon_delay.Enable(True)
-
-        # self.delay_text.SetLabel(delay)
-
-        attack = str((obj['parameters']['attack_min'] + obj[
-                     'parameters']['attack_max']) / 2)
-        life = str(obj['parameters']['life'])
-
-        try:
-            walk_dist = str(obj['parameters']['walk_dist'])
-        except KeyError:
-            walk_dist = '0'
-
-        self.attack_text.SetLabel(attack)
-        self.life_text.SetLabel(life)
-        self.walk_text.SetLabel(walk_dist)
+        self.attack_text.SetLabel(str(int(attack)))
+        self.life_text.SetLabel(str(life))
+        self.walk_text.SetLabel(str(walk_dist))
 
         self.number.SetLabel(str(self.o_id))
+        self.name.SetLabel(obj['name'])
 
         self.delay_bar.Refresh()
 
