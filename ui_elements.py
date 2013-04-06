@@ -2063,7 +2063,7 @@ class Icon(wx.Panel):
                     delay_max = u['delay']
                 if u['delay'] < delay_min:
                     delay_min = u['delay']
-                if u_p['walk_dist'] > walk_dist:
+                if u_p['walk_dist'] > walk_dist and obj['transporter'] == -1 and u['building'] == -1:
                     walk_dist = u_p['walk_dist']
 
                 attack += round((u_p['attack_min']+u_p['attack_max'])/float(2))
