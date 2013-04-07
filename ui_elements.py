@@ -104,7 +104,7 @@ class MainFrame(wx.Frame):
         ids = {}
         for i in range(10):
             ids[i] = wx.NewId()
-            shortcuts.append((wx.ACCEL_CTRL, ord(str(i)), ids[i]))
+            shortcuts.append((wx.ACCEL_NORMAL, ord(str(i)), ids[i]))
             self.Bind(wx.EVT_MENU, lambda evt, i=i:
                       self.on_shortcut(evt, i), id=ids[i])
 
@@ -2051,6 +2051,8 @@ class Icon(wx.Panel):
         self.SetSizer(top_level_sizer)
 
     def update_icon(self, obj):
+
+        use_red = False
         if 'units' in obj.keys():
             delay_min = 1000
             delay_max = 0
@@ -2068,11 +2070,17 @@ class Icon(wx.Panel):
 
                 attack += round((u_p['attack_min']+u_p['attack_max'])/float(2))
                 life += u_p['life']
+                if u_p['life'] < 20:
+                    use_red = True
         else:
             o_p = obj['parameters']
             delay_min = obj['delay']
             delay_max = obj['delay']
             life = o_p['life']
+
+            if life < 20:
+                use_red = True
+
             attack = round((o_p['attack_min']+o_p['attack_max'])/float(2))
             try:
                 walk_dist = o_p['walk_dist']
@@ -2088,6 +2096,12 @@ class Icon(wx.Panel):
 
         self.attack_text.SetLabel(str(int(attack)))
         self.life_text.SetLabel(str(int(life)))
+
+        if use_red:
+            self.life_text.SetForegroundColour(wx.RED)
+        else:
+            self.life_text.SetForegroundColour(colors[0])
+
         self.walk_text.SetLabel(str(int(walk_dist)))
 
         self.number.SetLabel(str(self.o_id))
