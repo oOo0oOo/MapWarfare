@@ -323,7 +323,7 @@ class Header(wx.Panel):
             self.displayed[param] = wx.StaticText(self, -1, '')
 
         # Display victory difference
-        self.victory = pg.PyGauge(self, -1, size=(100, 20), style=wx.GA_HORIZONTAL)
+        self.victory = pg.PyGauge(self, -1, size=(200, 20), style=wx.GA_HORIZONTAL)
         self.victory.SetBackgroundColour(colors[1])
         self.victory.SetBorderColor(colors[0])
         self.victory.SetBarColor(colors[2])
@@ -339,18 +339,19 @@ class Header(wx.Panel):
         self.DoLayout()
 
     def DoLayout(self):
-        main_sizer = wx.GridSizer(1, 16)
+        main_sizer = wx.FlexGridSizer(1, 16)
 
         params = ['name', 'account', 'sectors']
         for param in params:
-            main_sizer.Add(self.displayed['icon_' + param])
-            main_sizer.AddSpacer(10)
-            main_sizer.Add(self.displayed[param])
-            main_sizer.AddSpacer(20)
+            main_sizer.Add(self.displayed['icon_' + param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 10)
+            if not param == 'sectors':
+                d = 100
+            else:
+                d = 330
+            main_sizer.Add(self.displayed[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, d)
 
-        main_sizer.Add(self.victory)
-        main_sizer.AddSpacer(50)
-        main_sizer.Add(self.play_button)
+        main_sizer.Add(self.victory, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
+        main_sizer.Add(self.play_button, 0, wx.ALIGN_CENTER_VERTICAL)
 
         self.SetSizer(main_sizer)
 
@@ -401,7 +402,7 @@ class BottomPanel(wx.Panel):
         self.detail_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.top_sizer.Add(self.action_panel, 0, wx.LEFT, 5)
-        self.top_sizer.Add(self.summary, 0, wx.LEFT, 20)
+        self.top_sizer.Add(self.summary, 0, wx.LEFT, 100)
         self.detail_panel_sizer.Add(self.detail_panel)
 
         self.main_sizer.Add(self.top_sizer, 0, wx.ALL, 5)
@@ -678,7 +679,12 @@ class Summary(wx.Panel):
             name = field_names[i]
             image = image_names[i]
             self.text_fields[name] = wx.StaticText(self, -1, '    ')
-            self.images[i] = wx.StaticBitmap(self, -1, all_graphics[image])
+            if name != 'name':
+                spacer = 15
+                self.images[i] = wx.StaticBitmap(self, -1, all_graphics[image])
+            else:
+                spacer = 0
+                self.images[i] = wx.StaticText(self, -1, '')
 
             if new_vert_sizer:
                 cur_sizer += 1
@@ -688,8 +694,8 @@ class Summary(wx.Panel):
                 self.vert_sizers[cur_sizer] = wx.BoxSizer(wx.VERTICAL)
 
             hor_sizer = create_hor_sizer(
-                self.images[i], self.text_fields[name])
-            self.vert_sizers[cur_sizer].Add(hor_sizer)
+                self.images[i], self.text_fields[name], spacer)
+            self.vert_sizers[cur_sizer].Add(hor_sizer, 0, wx.BOTTOM, 5)
 
             new_vert_sizer = not new_vert_sizer
 
@@ -1037,6 +1043,8 @@ class Shop(wx.Panel):
             self.main_sizer.AddSpacer(5)
             self.main_sizer.Add(line)
             self.main_sizer.AddSpacer(5)
+
+        add_line()
 
         self.build_displayed = ObjSummary(
             self, b_id, building, all_graphics, True)
@@ -1656,8 +1664,7 @@ class Unit(wx.Panel):
                 action_label.SetFont(fonts['small'])
 
                 hor_sizer.Add(self.all_actions[name])
-                hor_sizer.AddSpacer(10)
-                hor_sizer.Add(action_label)
+                hor_sizer.Add(action_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 10)
                 self.action_sizer.Add(hor_sizer)
 
         # shortcuts (action categories)
@@ -1672,11 +1679,9 @@ class Unit(wx.Panel):
                     style=wx.BORDER_NONE, name=sh)
                 self.shortcuts[sh].Bind(wx.EVT_BUTTON, self.on_action_category)
 
-                shortcut_sizer.Add(self.shortcuts[sh])
-                if sh != 'equipment':
-                    shortcut_sizer.AddSpacer(10)
+                shortcut_sizer.Add(self.shortcuts[sh], 0, wx.LEFT, 10)
 
-        self.action_sizer.AddSpacer(5)
+        self.action_sizer.AddSpacer(10)
         self.action_sizer.Add(shortcut_sizer)
 
         self.action_panel.SetSizer(self.action_sizer)
@@ -1891,8 +1896,7 @@ class ObjSummary(wx.Panel):
                 action_label.SetFont(fonts['small'])
 
                 hor_sizer.Add(self.all_actions[name])
-                hor_sizer.AddSpacer(10)
-                hor_sizer.Add(action_label)
+                hor_sizer.Add(action_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 10)
                 self.action_sizer.Add(hor_sizer)
 
         # shortcuts (action categories)
@@ -1907,11 +1911,9 @@ class ObjSummary(wx.Panel):
                     style=wx.BORDER_NONE, name=sh)
                 self.shortcuts[sh].Bind(wx.EVT_BUTTON, self.on_action_category)
 
-                shortcut_sizer.Add(self.shortcuts[sh])
-                if sh != 'equipment':
-                    shortcut_sizer.AddSpacer(10)
+                shortcut_sizer.Add(self.shortcuts[sh], 0, wx.LEFT, 10)
 
-        self.action_sizer.AddSpacer(5)
+        self.action_sizer.AddSpacer(10)
         self.action_sizer.Add(shortcut_sizer)
 
         self.action_panel.SetSizer(self.action_sizer)
