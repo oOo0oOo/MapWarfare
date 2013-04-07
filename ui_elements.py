@@ -401,8 +401,10 @@ class BottomPanel(wx.Panel):
         self.top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.detail_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.top_sizer.Add(self.action_panel, 0, wx.LEFT, 5)
-        self.top_sizer.Add(self.summary, 0, wx.LEFT, 100)
+        self.top_sizer.AddSpacer(5)
+        self.top_sizer.Add(self.action_panel, 0, wx.RIGHT, 60)
+        self.top_sizer.Add(wx.StaticLine(self, size=(2,50)))
+        self.top_sizer.Add(self.summary, 0, wx.LEFT, 60)
         self.detail_panel_sizer.Add(self.detail_panel)
 
         self.main_sizer.Add(self.top_sizer, 0, wx.ALL, 5)
@@ -679,6 +681,8 @@ class Summary(wx.Panel):
             name = field_names[i]
             image = image_names[i]
             self.text_fields[name] = wx.StaticText(self, -1, '    ')
+            self.text_fields[name].SetFont(fonts['parameter'])
+
             if name != 'name':
                 spacer = 15
                 self.images[i] = wx.StaticBitmap(self, -1, all_graphics[image])
@@ -2400,7 +2404,7 @@ class MessageBoard(wx.Panel):
             hor_sizer.Add(self.msg_btn[message_id])
             hor_sizer.AddSpacer(10)
             hor_sizer.Add(wx.StaticText(
-                self.scroll_panel, -1, self.messages[message_id]['title']))
+                self.scroll_panel, -1, self.messages[message_id]['title']), 0, wx.ALIGN_CENTER_VERTICAL)
 
             self.message_sizer.Add(hor_sizer)
             self.message_sizer.AddSpacer(5)
