@@ -37,9 +37,11 @@ class MainFrame(wx.Frame):
         colors[1] = '#139EC7'  # Used as main background for most panels (light blue)
         colors[2] = '#046380'  # Used as background for the summary panel (darker blue)
 
-        fonts['parameter'] = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        fonts['small'] = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        fonts['large_number'] = wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        font_family = wx.FONTFAMILY_SWISS
+        fonts['parameter'] = wx.Font(10, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        fonts['small'] = wx.Font(8, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        fonts['large_number'] = wx.Font(25, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        fonts['title'] = wx.Font(12, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
 
         self.connection = connection
         self.all_graphics = all_graphics
@@ -321,6 +323,7 @@ class Header(wx.Panel):
             self.displayed['icon_' + param] = wx.StaticBitmap(
                 self, bitmap=self.all_graphics['unknown'])
             self.displayed[param] = wx.StaticText(self, -1, '')
+            self.displayed[param].SetFont(fonts['title'])
 
         # Display victory difference
         self.victory = pg.PyGauge(self, -1, size=(200, 20), style=wx.GA_HORIZONTAL)
@@ -365,13 +368,17 @@ class Header(wx.Panel):
     def update_status(self, status):
 
         for param, value in status.items():
-            if param != 'diff':
-                self.displayed[param].SetLabel(str(value))
-            else:
+            if param == 'diff':
                 val = (self.middle + float(value)) / (2 * self.middle)
                 val = int(round(float(self.middle + value)/(2 * self.middle)*100))
                 self.victory.SetValue(val)
                 self.victory.Refresh()
+            elif param == 'sectors':
+                self.displayed[param].SetLabel(', '.join(map(lambda x: str(x), value)))
+            elif param == 'account':
+                self.displayed[param].SetLabel(str(int(value)) + ' $')
+            else:
+                self.displayed[param].SetLabel(str(value))
 
         # self.Layout()
 
@@ -407,7 +414,7 @@ class BottomPanel(wx.Panel):
         self.top_sizer.Add(self.summary, 0, wx.LEFT, 60)
         self.detail_panel_sizer.Add(self.detail_panel)
 
-        self.main_sizer.Add(self.top_sizer, 0, wx.ALL, 5)
+        self.main_sizer.Add(self.top_sizer, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM, 10)
         self.main_sizer.Add(wx.StaticLine(self, size=(1330, 2)))
         self.main_sizer.Add(self.detail_panel_sizer, 0, wx.EXPAND)
 
