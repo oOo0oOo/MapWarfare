@@ -695,9 +695,11 @@ class Summary(wx.Panel):
                 self.images[i] = wx.StaticBitmap(self, -1, all_graphics[image])
             else:
                 spacer = 0
-                self.images[i] = wx.StaticText(self, -1, '')
+                self.images[i] = wx.BoxSizer(wx.HORIZONTAL)
 
+            spacer_vert = 0
             if new_vert_sizer:
+                spacer_vert = 10
                 cur_sizer += 1
                 if cur_sizer != 0:
                     self.main_sizer.Add(self.vert_sizers[cur_sizer - 1])
@@ -706,7 +708,7 @@ class Summary(wx.Panel):
 
             hor_sizer = create_hor_sizer(
                 self.images[i], self.text_fields[name], spacer)
-            self.vert_sizers[cur_sizer].Add(hor_sizer, 0, wx.BOTTOM, 5)
+            self.vert_sizers[cur_sizer].Add(hor_sizer, 0, wx.BOTTOM, spacer_vert)
 
             new_vert_sizer = not new_vert_sizer
 
@@ -843,10 +845,12 @@ class Summary(wx.Panel):
         # set all the parameters
         # Simple parameters
         for p in ['name', 'attack', 'shield', 'num_units', 'sectors']:
-            if p not in ('name', 'sectors'):
-                te = str(int(par[p]))
-            else:
+            if p == 'name':
                 te = str(par[p])
+            elif p == 'sectors':
+                te = ', '.join(map(lambda x: str(x), par[p]))
+            else:
+                te = str(int(par[p]))
 
             self.text_fields[p].SetLabel(te)
 
