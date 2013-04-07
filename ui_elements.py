@@ -1055,9 +1055,7 @@ class Shop(wx.Panel):
 
         def add_line():
             line = wx.StaticLine(self, size=(2, 310))
-            self.main_sizer.AddSpacer(5)
-            self.main_sizer.Add(line)
-            self.main_sizer.AddSpacer(5)
+            self.main_sizer.Add(line, 0, wx.LEFT|wx.RIGHT, 20)
 
         add_line()
 
@@ -1067,7 +1065,7 @@ class Shop(wx.Panel):
         add_line()
 
         if len(building['parameters']['shop_units']) + len(building['parameters']['shop_transporter']) > 0:
-            self.main_sizer.AddSpacer(30)
+            self.main_sizer.AddSpacer(5)
 
             # get all possible units
             def create_unit(ind, basic_params):
@@ -1096,7 +1094,9 @@ class Shop(wx.Panel):
                 u['name'] = wx.StaticText(self, -1, basic_params['name'])
                 u['price'] = wx.StaticText(
                     self, -1, str(basic_params['price']) + '$')
+                u['price'].SetFont(fonts['small'])
                 u['num_selected'] = wx.StaticText(self, -1, '0')
+                u['num_selected'].SetFont(fonts['large_number'])
 
                 for but in ['button_plus', 'button_minus', 'button_5', 'button_10']:
                     u[but] = wx.BitmapButton(
@@ -1124,12 +1124,11 @@ class Shop(wx.Panel):
                 u['top_right_sizer'].Add(u['price'])
 
                 u['top_sizer'].Add(u['image'])
-                u['top_sizer'].AddSpacer(5)
+                u['top_sizer'].AddSpacer(10)
                 u['top_sizer'].Add(u['top_right_sizer'])
 
                 # Middle Part
-                u['middle_sizer'].Add(u['num_selected'])
-                u['middle_sizer'].AddSpacer(5)
+                u['middle_sizer'].Add(u['num_selected'], 0, wx.LEFT|wx.RIGHT, 20)
                 u['middle_sizer'].Add(u['button_sizer'])
 
                 # Parameter part
@@ -1162,14 +1161,10 @@ class Shop(wx.Panel):
                     spacer = not spacer
 
                 # General Layout
-
-                u['main_sizer'].Add(u['top_sizer'])
-                u['main_sizer'].AddSpacer(10)
-                u['main_sizer'].Add(u['middle_sizer'])
-                u['main_sizer'].AddSpacer(10)
-                u['main_sizer'].Add(u['icon_grid'])
-                u['main_sizer'].AddSpacer(10)
-                u['main_sizer'].Add(u['parameter_sizer'])
+                u['main_sizer'].Add(u['top_sizer'], 0, wx.TOP, 10)
+                u['main_sizer'].Add(u['middle_sizer'], 0, wx.TOP, 10)
+                u['main_sizer'].Add(u['icon_grid'], 0, wx.TOP, 10)
+                u['main_sizer'].Add(u['parameter_sizer'], 0, wx.TOP, 10)
 
                 return u
 
@@ -1183,6 +1178,8 @@ class Shop(wx.Panel):
                 u['name'] = wx.StaticText(self, -1, basic_params['name'])
                 u['price'] = wx.StaticText(
                     self, -1, str(basic_params['price']) + '$')
+
+                u['price'].SetFont(fonts['small'])
 
                 try:
                     image = self.all_graphics['transporter_' + str(ind)]
@@ -1241,14 +1238,17 @@ class Shop(wx.Panel):
 
                 # General Layout
 
-                u['main_sizer'].Add(u['top_sizer'])
-                u['main_sizer'].AddSpacer(10)
-                u['main_sizer'].Add(u['parameter_sizer'])
+                u['main_sizer'].Add(u['top_sizer'], 0, wx.TOP, 10)
+                u['main_sizer'].Add(u['parameter_sizer'], 0, wx.TOP, 10)
 
                 return u
 
             self.summary_sizer = wx.BoxSizer(wx.VERTICAL)
-            self.tot_price = wx.StaticText(self, -1, '0$                  ')
+            title = wx.StaticText(self, -1, 'Shop')
+            title.SetFont(fonts['large_number'])
+            self.tot_price = wx.StaticText(self, -1, '0$')
+            self.tot_price.SetFont(fonts['title'])
+
             self.name = wx.TextCtrl(self, -1, '')
 
             self.buy_button = wx.BitmapButton(
@@ -1257,6 +1257,7 @@ class Shop(wx.Panel):
             self.buy_button.Bind(wx.EVT_BUTTON, self.buy_group)
             self.buy_button.SetBackgroundColour(colors[1])
 
+            self.summary_sizer.Add(title, 0, wx.TOP|wx.BOTTOM, 8)
             self.summary_sizer.Add(self.tot_price)
             self.summary_sizer.AddSpacer(15)
             self.summary_sizer.Add(self.name)
