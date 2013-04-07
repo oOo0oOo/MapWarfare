@@ -34,7 +34,7 @@ colors[2] = '#046380'  # Used as background for the summary panel (darker blue)
 class MainFrame(wx.Frame):
 
     def __init__(self, parent, title, all_graphics, connection):
-        wx.Frame.__init__(self, parent, title=title, size=(1366, 710))
+        wx.Frame.__init__(self, parent, title=title, size=(1366, 768))
         self.connection = connection
         self.all_graphics = all_graphics
 
@@ -47,14 +47,6 @@ class MainFrame(wx.Frame):
         self.game_parameters = {}
         self.selected_ids = []
         self.enemy_groups = {}
-
-        self.SetBackgroundColour(colors[0])
-
-        # Create all the sizers (containers for UI elements)
-        self.top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.middle_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.upper_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # create istances of all other
         self.header = Header(self, self.all_graphics, self.connection)
@@ -71,26 +63,9 @@ class MainFrame(wx.Frame):
         self.header.SetBackgroundColour(colors[1])
         self.card_panel.SetBackgroundColour(colors[1])
 
-        self.upper_sizer.Add(self.header)
-        self.upper_sizer.AddSpacer(10)
-        self.upper_sizer.Add(self.card_panel, 0, wx.EXPAND)
-
-        self.middle_sizer.Add(self.icon_panel)
-        self.middle_sizer.AddSpacer(10)
-        self.middle_sizer.Add(self.message_board, 0, wx.EXPAND)
-
-        self.main_sizer.AddSpacer(10)
-        self.main_sizer.Add(self.upper_sizer)
-        self.main_sizer.AddSpacer(10)
-        self.main_sizer.Add(self.middle_sizer)
-        self.main_sizer.AddSpacer(10)
-        self.main_sizer.Add(self.bottom_panel)
-
-        self.top_sizer.AddSpacer(15)
-        self.top_sizer.Add(self.main_sizer)
-
-        # self.SetAutoLayout(True)
-        self.SetSizer(self.top_sizer)
+        self.DoLayout()
+        
+        self.Maximize()
         self.Layout()
 
         # Bind handler for all button clicks on items
@@ -99,7 +74,7 @@ class MainFrame(wx.Frame):
         # Bind handler for action events
         self.Bind(EVT_INITIATE_ACTION, self.initiate_action)
 
-        # Set up keyboard shortcuts ( Ctrl + 0-9) select number
+        # Set up keyboard shortcuts (0-9) select number
         shortcuts = []
         ids = {}
         for i in range(10):
@@ -108,8 +83,47 @@ class MainFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, lambda evt, i=i:
                       self.on_shortcut(evt, i), id=ids[i])
 
+        # key F triggers fullscreen
+        ind = wx.NewId()
+        shortcuts.append((wx.ACCEL_NORMAL, ord('F'), ind))
+        self.Bind(wx.EVT_MENU, self.on_fullscreen, id=ind)
+
+        # key ESC can be used to end fullscreen
+        ind = wx.NewId()
+        shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, ind))
+        self.Bind(wx.EVT_MENU, self.end_fullscreen, id=ind)
+        
         accel_tbl = wx.AcceleratorTable(shortcuts)
         self.SetAcceleratorTable(accel_tbl)
+
+    def DoLayout(self):
+        self.SetBackgroundColour(colors[0])
+
+        self.top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.middle_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.upper_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.upper_sizer.Add(self.header, 0, wx.RIGHT, 10)
+        self.upper_sizer.Add(self.card_panel, 0, wx.EXPAND)
+        self.middle_sizer.Add(self.icon_panel, 0, wx.RIGHT, 10)
+        self.middle_sizer.Add(self.message_board, 0, wx.EXPAND)
+
+        self.main_sizer.Add(self.upper_sizer, 0, wx.TOP, 10)
+        self.main_sizer.Add(self.middle_sizer, 0, wx.TOP, 10)
+        self.main_sizer.Add(self.bottom_panel, 0, wx.TOP, 10)
+
+        self.top_sizer.Add(self.main_sizer, 0, wx.LEFT, 10)
+
+        self.SetSizer(self.top_sizer)
+
+    def on_fullscreen(self, evt):
+        self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
+
+    def end_fullscreen(self, evt):
+        print 'EESCCCAAAPPPPEEE'
+        if self.IsFullScreen():
+            self.ShowFullScreen(False)
 
     def on_shortcut(self, evt, o_id):
         g_o = self.game_obj
@@ -296,8 +310,6 @@ class Header(wx.Panel):
         self.run_ticks = False
 
         self.SetMinSize((1000, -1))
-        self.main_sizer = wx.GridSizer(1, 16)
-
         params = ['name', 'account', 'sectors']
         self.displayed = {}
         for param in params:
@@ -305,20 +317,11 @@ class Header(wx.Panel):
                 self, bitmap=self.all_graphics['unknown'])
             self.displayed[param] = wx.StaticText(self, -1, '')
 
-            self.main_sizer.Add(self.displayed['icon_' + param])
-            self.main_sizer.AddSpacer(10)
-            self.main_sizer.Add(self.displayed[param])
-            self.main_sizer.AddSpacer(20)
-
         # Display victory difference
-
         self.victory = pg.PyGauge(self, -1, size=(100, 20), style=wx.GA_HORIZONTAL)
         self.victory.SetBackgroundColour(colors[1])
         self.victory.SetBorderColor(colors[0])
         self.victory.SetBarColor(colors[2])
-
-        self.main_sizer.Add(self.victory)
-        self.main_sizer.AddSpacer(50)
 
         self.play_button = buttons.GenBitmapToggleButton(
             self, -1, self.all_graphics['button_play'],
@@ -328,9 +331,23 @@ class Header(wx.Panel):
         self.play_button.SetBackgroundColour(colors[1])
         self.play_button.Bind(wx.EVT_BUTTON, self.toggle_play)
 
-        self.main_sizer.Add(self.play_button)
+        self.DoLayout()
 
-        self.SetSizer(self.main_sizer)
+    def DoLayout(self):
+        main_sizer = wx.GridSizer(1, 16)
+
+        params = ['name', 'account', 'sectors']
+        for param in params:
+            main_sizer.Add(self.displayed['icon_' + param])
+            main_sizer.AddSpacer(10)
+            main_sizer.Add(self.displayed[param])
+            main_sizer.AddSpacer(20)
+
+        main_sizer.Add(self.victory)
+        main_sizer.AddSpacer(50)
+        main_sizer.Add(self.play_button)
+
+        self.SetSizer(main_sizer)
 
     def toggle_play(self, evt):
         status = self.play_button.GetValue()
@@ -359,30 +376,31 @@ class Header(wx.Panel):
 class BottomPanel(wx.Panel):
 
     def __init__(self, parent, all_graphics, connection):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(1330, 320))
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(1330, 370))
         self.all_graphics = all_graphics
         self.connection = connection
         self.game_obj = {}
         self.game_parameters = {}
         self.current_selection = []
 
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.detail_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
         self.action_panel = ActionPanel(self, self.all_graphics)
         self.detail_panel = SelectionDetails(self, self.all_graphics)
         self.summary = Summary(self, self.all_graphics)
 
-        self.top_sizer.Add(self.summary)
-        self.main_sizer.AddSpacer(2)
-        self.top_sizer.Add(self.action_panel)
+        self.DoLayout()
+
+    def DoLayout(self):
+
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.detail_panel_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.top_sizer.Add(self.action_panel, 0, wx.LEFT, 5)
+        self.top_sizer.Add(self.summary, 0, wx.LEFT, 20)
         self.detail_panel_sizer.Add(self.detail_panel)
 
-        self.main_sizer.Add(self.top_sizer)
-        line = wx.StaticLine(self, size=(1330, 2))
-        self.main_sizer.AddSpacer(10)
-        self.main_sizer.Add(line)
+        self.main_sizer.Add(self.top_sizer, 0, wx.ALL, 5)
+        self.main_sizer.Add(wx.StaticLine(self, size=(1330, 2)))
         self.main_sizer.Add(self.detail_panel_sizer, 0, wx.EXPAND)
 
         self.SetSizer(self.main_sizer)
@@ -1010,7 +1028,7 @@ class Shop(wx.Panel):
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         def add_line():
-            line = wx.StaticLine(self, size=(2, 265))
+            line = wx.StaticLine(self, size=(2, 310))
             self.main_sizer.AddSpacer(5)
             self.main_sizer.Add(line)
             self.main_sizer.AddSpacer(5)
@@ -1233,7 +1251,7 @@ class SelectionDetails(wx.Panel):
     average age of units, average elite of units, delay until next unit is free'''
     def __init__(self, parent, all_graphics, selection={}):
         wx.Panel.__init__(
-            self, parent=parent, id=wx.ID_ANY, size=(1330, 265))
+            self, parent=parent, id=wx.ID_ANY, size=(1330, 310))
         self.all_graphics = all_graphics
         self.SetBackgroundColour(colors[1])
         self.selection = selection
@@ -1243,18 +1261,19 @@ class SelectionDetails(wx.Panel):
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # all units
-        self.unit_panel = scrolled.ScrolledPanel(self, -1, size=(1330, 265))
+        self.unit_panel = scrolled.ScrolledPanel(self, -1, size=(1330, 310))
         self.detail_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.displayed_objects = {}
 
         def add_line():
-            line = wx.StaticLine(self.unit_panel, size=(2, 265))
+            line = wx.StaticLine(self.unit_panel, size=(2, 310))
             self.detail_sizer.AddSpacer(5)
             self.detail_sizer.Add(line, 0, wx.EXPAND)
             self.detail_sizer.AddSpacer(5)
 
         if selection:
+            add_line()
             for b_id, building in selection['buildings'].items():
                 self.displayed_objects[b_id] = ObjSummary(
                     self.unit_panel, b_id, building, self.all_graphics, is_building=True)
@@ -1299,7 +1318,8 @@ class Unit(wx.Panel):
     actions as buttons in separate scrolled panel'''
 
     def __init__(self, parent, g_id, u_id, unit, all_graphics):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(150, 265))
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(150, 310))
+        #self.SetMinSize((150, 300))
         self.all_graphics = all_graphics
         self.unit = unit
         self.u_id = u_id
@@ -1393,7 +1413,7 @@ class Unit(wx.Panel):
             spacer = not spacer
 
         # Make e list of all actions (scrolled): the action_panel
-        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(145, 100))
+        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(145, 50))
 
         self.action_sizer = wx.BoxSizer(wx.VERTICAL)
         self.all_actions = {}
@@ -1915,7 +1935,6 @@ class IconPanel(scrolled.ScrolledPanel):
             del self.displayed[o_id]
 
         if added:
-            print 'len displayed left', len(self.displayed.keys())
             if len(self.displayed.keys()) == 19:
                 # IMPLEMENT: Find which condition to renew frame...
                 self.FitInside()
