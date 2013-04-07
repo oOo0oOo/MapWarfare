@@ -2413,6 +2413,15 @@ class Icon(wx.Panel):
 
         val = int(round(float(delay_max)/20*100))
         self.delay_bar.SetValue(val)
+        if delay_max == 0:
+            self.delay_bar.SetBackgroundColour(wx.GREEN)
+        else:
+            self.delay_bar.SetBackgroundColour(colors[1])
+
+        if 0 < delay_max <= 3:
+            self.delay_bar.SetBarColour('#FF6600')
+        else:
+            self.delay_bar.SetBarColour(colors[2])
 
         self.attack_text.SetLabel(str(int(attack)))
         self.life_text.SetLabel(str(int(life)))
