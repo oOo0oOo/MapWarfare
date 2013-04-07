@@ -410,7 +410,7 @@ class BottomPanel(wx.Panel):
 
         self.top_sizer.AddSpacer(5)
         self.top_sizer.Add(self.action_panel, 0, wx.RIGHT, 60)
-        self.top_sizer.Add(wx.StaticLine(self, size=(2,50)))
+        self.top_sizer.Add(wx.StaticLine(self, size=(2, 50)))
         self.top_sizer.Add(self.summary, 0, wx.LEFT, 60)
         self.detail_panel_sizer.Add(self.detail_panel)
 
@@ -1132,11 +1132,44 @@ class Shop(wx.Panel):
                 u['middle_sizer'].AddSpacer(5)
                 u['middle_sizer'].Add(u['button_sizer'])
 
+                # Parameter part
+                u_p = basic_params
+                params = [('life', str(int(u_p['life']))),
+                          ('shield', str(int(u_p['shield']))),
+                          ('shoot_dist', str(int(u_p['shoot_dist']))),
+                          ('walk_dist', str(int(u_p['walk_dist']))),
+                          ('delay_shoot', str(int(u_p['delay_shoot']))),
+                          ('delay_walk', str(int(u_p['delay_walk']))),
+                          ('attack', '{0}-{1}'.format(int(u_p['attack_min']), int(u_p['attack_max'])))
+                          ]
+
+                u['parameter_sizer'] = wx.FlexGridSizer(3, 5)
+
+                spacer = True
+
+                for param, value in params:
+                    image = 'icon_' + param
+                    params_image = wx.StaticBitmap(self, wx.ID_ANY, all_graphics[image])
+                    params_value = wx.StaticText(self, -1, value)
+                    params_value.SetFont(fonts['parameter'])
+
+                    u['parameter_sizer'].Add(params_image, 0, wx.ALL, 5)
+                    u['parameter_sizer'].Add(params_value, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    if spacer:
+                        u['parameter_sizer'].AddSpacer(20)
+
+                    spacer = not spacer
+
+                # General Layout
+
                 u['main_sizer'].Add(u['top_sizer'])
                 u['main_sizer'].AddSpacer(10)
                 u['main_sizer'].Add(u['middle_sizer'])
                 u['main_sizer'].AddSpacer(10)
                 u['main_sizer'].Add(u['icon_grid'])
+                u['main_sizer'].AddSpacer(10)
+                u['main_sizer'].Add(u['parameter_sizer'])
 
                 return u
 
@@ -1177,7 +1210,40 @@ class Shop(wx.Panel):
                 u['top_sizer'].AddSpacer(5)
                 u['top_sizer'].Add(u['top_right_sizer'])
 
+                # Parameter part
+                u_p = basic_params
+                params = [('life', str(int(u_p['life']))),
+                          ('shield', str(int(u_p['shield']))),
+                          ('shoot_dist', str(int(u_p['shoot_dist']))),
+                          ('walk_dist', str(int(u_p['walk_dist']))),
+                          ('delay_shoot', str(int(u_p['delay_shoot']))),
+                          ('delay_walk', str(int(u_p['delay_walk']))),
+                          ('attack', '{0}-{1}'.format(int(u_p['attack_min']), int(u_p['attack_max'])))
+                          ]
+
+                u['parameter_sizer'] = wx.FlexGridSizer(3, 5)
+
+                spacer = True
+
+                for param, value in params:
+                    image = 'icon_' + param
+                    params_image = wx.StaticBitmap(self, wx.ID_ANY, all_graphics[image])
+                    params_value = wx.StaticText(self, -1, value)
+                    params_value.SetFont(fonts['parameter'])
+
+                    u['parameter_sizer'].Add(params_image, 0, wx.ALL, 5)
+                    u['parameter_sizer'].Add(params_value, 0, wx.ALIGN_CENTER_VERTICAL)
+
+                    if spacer:
+                        u['parameter_sizer'].AddSpacer(20)
+
+                    spacer = not spacer
+
+                # General Layout
+
                 u['main_sizer'].Add(u['top_sizer'])
+                u['main_sizer'].AddSpacer(10)
+                u['main_sizer'].Add(u['parameter_sizer'])
 
                 return u
 
