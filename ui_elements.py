@@ -20,21 +20,27 @@ class ActionEvent(wx.PyCommandEvent):
         self.u_id = u_id
         self.action_name = action_name
 
-# Define some fonts and colors
-# fonts = {}
-# fonts['standard'] = wx.Font(10, wx.MODERN, wx.NORMAL, wx.NORMAL, False,
-# u'Consolas')
-
-colors = {}
-colors[0] = '#000000'  # Main background (dark dark blue)
-colors[1] = '#139EC7'  # Used as main background for most panels (light blue)
-colors[2] = '#046380'  # Used as background for the summary panel (darker blue)
-
 
 class MainFrame(wx.Frame):
 
     def __init__(self, parent, title, all_graphics, connection):
         wx.Frame.__init__(self, parent, title=title, size=(1366, 768))
+
+        # Define some global fonts and colors
+        # Done at this point because wx.Font() requires running wx.App
+        global colors
+        global fonts
+        colors = {}
+        fonts = {}
+
+        colors[0] = '#000000'  # Main background (dark dark blue)
+        colors[1] = '#139EC7'  # Used as main background for most panels (light blue)
+        colors[2] = '#046380'  # Used as background for the summary panel (darker blue)
+
+        fonts['parameter'] = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        fonts['small'] = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        fonts['large_number'] = wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+
         self.connection = connection
         self.all_graphics = all_graphics
 
@@ -64,7 +70,7 @@ class MainFrame(wx.Frame):
         self.card_panel.SetBackgroundColour(colors[1])
 
         self.DoLayout()
-        
+
         self.Maximize()
         self.Layout()
 
@@ -92,7 +98,7 @@ class MainFrame(wx.Frame):
         ind = wx.NewId()
         shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, ind))
         self.Bind(wx.EVT_MENU, self.end_fullscreen, id=ind)
-        
+
         accel_tbl = wx.AcceleratorTable(shortcuts)
         self.SetAcceleratorTable(accel_tbl)
 
@@ -121,7 +127,6 @@ class MainFrame(wx.Frame):
         self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
 
     def end_fullscreen(self, evt):
-        print 'EESCCCAAAPPPPEEE'
         if self.IsFullScreen():
             self.ShowFullScreen(False)
 
@@ -1310,6 +1315,211 @@ class SelectionDetails(wx.Panel):
                 pass
 
 
+class Unit_IGNORE(wx.Panel):
+
+    '''Displayed as image: unit, elite, building, protected,
+
+    as text: delay left, life, attack, dist shoot, dist walk, age, total_damage
+    actions as buttons in separate scrolled panel'''
+
+    def __init__(self, parent, g_id, u_id, unit, all_graphics):
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(150, 310))
+        # self.SetMinSize((150, 300))
+        self.all_graphics = all_graphics
+        self.unit = unit
+        self.u_id = u_id
+        self.g_id = g_id
+
+        try:
+            unit_bmp = all_graphics['unit_' + str(unit['parameters']['id'])]
+        except KeyError:
+            unit_bmp = all_graphics['unknown']
+
+        try:
+            elite = 'rank_' + str(int(unit['parameters']['elite']))
+            elite_bmp = all_graphics[elite]
+        except KeyError:
+            elite_bmp = all_graphics['rank_8']
+
+        if unit['building'] == -1:
+            b_bmp = 'icon_not_in_building'
+        else:
+            b_bmp = 'icon_in_building'
+
+        try:
+            building_bmp = all_graphics[b_bmp]
+        except KeyError:
+            building_bmp = all_graphics['unknown']
+
+        if unit['protected']:
+            p_bmp = 'icon_protected'
+        else:
+            p_bmp = 'icon_not_protected'
+
+        protection_bmp = all_graphics[p_bmp]
+
+        name = unit['parameters']['name'] + ' ' + unit['name']
+
+        # display all parameters
+
+        self.params = ['life', 'shield', 'shoot_dist', 'walk_dist', 'attack', 'delay']
+
+        self.params_images = {}
+        self.params_value = {}
+
+        spacer = True
+
+        for param in self.params:
+            image = 'icon_' + param
+            self.params_images[image] = wx.StaticBitmap(
+                self, wx.ID_ANY, all_graphics[image])
+            self.params_value[param] = wx.StaticText(self, -1, '')
+
+        # Make e list of all actions (scrolled): the action_panel
+        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(145, 50))
+
+        self.all_actions = {}
+
+        self.action_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.collected_actions = {'upgrade': {}, 'shop': {}, 'equipment': {}}
+        # Create each action (a button and a description)
+        for name, action in self.unit['parameters']['actions'].items():
+            if action['category'] != 'standard':
+                self.collected_actions[action['category']][name] = action
+
+            else:
+                hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
+                self.all_actions[name] = wx.BitmapButton(
+                    self.action_panel, -1, self.all_graphics['button_action'],
+                    name=name, size=(20, 20), style = wx.BORDER_NONE)
+                self.all_actions[name].Bind(wx.EVT_BUTTON, self.on_unit_action)
+
+                label = name + ' '
+                if action['price'] > 0:
+                    label += ', ' + str(int(action['price'])) + '$'
+
+                if action['delay'] > 0:
+                    label += ', wait ' + str(int(action['delay']))
+
+                if action['num_uses'] != -1:
+                    label += ', ' + str(action['num_uses']) + 'x'
+
+                hor_sizer.Add(self.all_actions[name])
+                hor_sizer.AddSpacer(10)
+                hor_sizer.Add(wx.StaticText(self.action_panel, -1, label))
+                self.action_sizer.Add(hor_sizer)
+
+        # shortcuts (action categories)
+        self.shortcuts = {}
+        self.shortcut_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        for sh in ['upgrade', 'shop', 'equipment']:
+            if len(self.collected_actions[sh]) > 0:
+                img = 'button_' + sh
+                self.shortcuts[sh] = wx.BitmapButton(
+                    self.action_panel, -1, self.all_graphics[img],
+                    style=wx.BORDER_NONE, name=sh)
+                self.shortcuts[sh].Bind(wx.EVT_BUTTON, self.on_action_category)
+
+                self.shortcut_sizer.Add(self.shortcuts[sh])
+                if sh != 'equipment':
+                    self.shortcut_sizer.AddSpacer(10)
+
+        self.DoLayout()
+        self.update_parameters(unit)
+
+    def DoLayout(self):
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.top_left_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.top_right_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.top_left_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.top_left_sizer.Add(wx.StaticText(self, -1, ''))
+        self.top_left_sizer.AddSpacer(10)
+
+        bmp = self.all_graphics['unknown']
+        icon = self.all_graphics['unknown_icon']
+        self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, bmp))
+        self.top_left_bottom_sizer.AddSpacer(10)
+        self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, icon))
+
+        self.top_right_sizer.Add(wx.StaticBitmap(self, -1, icon))
+        self.top_right_sizer.AddSpacer(5)
+        self.top_right_sizer.Add(wx.StaticBitmap(self, -1, icon))
+
+        self.top_left_sizer.Add(self.top_left_bottom_sizer)
+        self.top_sizer.Add(self.top_left_sizer)
+        self.top_sizer.AddSpacer(10)
+        self.top_sizer.Add(self.top_right_sizer)
+
+        self.params_sizer = wx.GridSizer(3, 5)
+
+        spacer = True
+        for param in self.params:
+            image = 'icon_' + param
+            self.params_sizer.Add(self.params_images[image])
+            self.params_sizer.Add(self.params_value[param])
+
+            if spacer:
+                self.params_sizer.AddSpacer(10)
+
+            spacer = not spacer
+
+        self.action_sizer.AddSpacer(5)
+        self.action_sizer.Add(self.shortcut_sizer)
+
+        self.action_panel.SetSizer(self.action_sizer)
+
+        self.action_panel.SetupScrolling(False, True)
+
+        self.main_sizer.Add(self.top_sizer)
+        self.main_sizer.AddSpacer(15)
+        self.main_sizer.Add(self.params_sizer)
+        self.main_sizer.AddSpacer(15)
+        self.main_sizer.Add(self.action_panel)
+
+        self.SetSizer(self.main_sizer)
+
+    def on_action_category(self, evt):
+        category = evt.GetEventObject().GetName()
+        actions = self.collected_actions[category]
+        dlg = ActionCategory(self, category, actions, self.all_graphics)
+        success = dlg.ShowModal()
+        if success:
+            action = dlg.selected_action
+            new_event = ActionEvent(
+                INITIATE_ACTION, self.GetId(), action_type='unit_action',
+                o_id=self.g_id, u_id=self.u_id, action_name=action)
+            dlg.Destroy()
+            self.GetEventHandler().ProcessEvent(new_event)
+
+    def update_parameters(self, new_obj):
+        params = [(
+            'life', '{0}/{1}'.format(int(new_obj['parameters']['life']), int(new_obj['parameters']['max_life']))),
+            ('shield', str(int(new_obj['parameters']['shield']))),
+            ('shoot_dist', str(int(new_obj[
+                                   'parameters']['shoot_dist']))),
+            ('walk_dist', str(int(new_obj['parameters']['walk_dist']))),
+            ('attack', '{0}-{1}'.format(int(new_obj['parameters'][
+                                            'attack_min']), int(new_obj['parameters']['attack_max']))),
+            ('delay', str(int(new_obj['delay'])))
+        ]
+
+        for param, value in params:
+            self.params_value[param].SetLabel(value)
+
+    def on_unit_action(self, evt):
+        action_name = evt.GetEventObject().GetName()
+        # Create an Action Event with all the necessary parameters
+        new_event = ActionEvent(
+            INITIATE_ACTION, self.GetId(), action_type='unit_action',
+            o_id=self.g_id, u_id=self.u_id, action_name=action_name)
+
+        # Process Event (handled in Main Frame)
+        self.GetEventHandler().ProcessEvent(new_event)
+
+
 class Unit(wx.Panel):
 
     '''Displayed as image: unit, elite, building, protected,
@@ -1319,7 +1529,7 @@ class Unit(wx.Panel):
 
     def __init__(self, parent, g_id, u_id, unit, all_graphics):
         wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(150, 310))
-        #self.SetMinSize((150, 300))
+        # self.SetMinSize((150, 300))
         self.all_graphics = all_graphics
         self.unit = unit
         self.u_id = u_id
@@ -1392,7 +1602,7 @@ class Unit(wx.Panel):
             ('delay', str(int(self.unit['delay'])))
         ]
 
-        self.params_sizer = wx.GridSizer(3, 5)
+        self.params_sizer = wx.FlexGridSizer(3, 5)
         self.params_images = {}
         self.params_value = {}
 
@@ -1403,12 +1613,13 @@ class Unit(wx.Panel):
             self.params_images[image] = wx.StaticBitmap(
                 self, wx.ID_ANY, all_graphics[image])
             self.params_value[param] = wx.StaticText(self, -1, value)
+            self.params_value[param].SetFont(fonts['parameter'])
 
             self.params_sizer.Add(self.params_images[image])
-            self.params_sizer.Add(self.params_value[param])
+            self.params_sizer.Add(self.params_value[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 4)
 
             if spacer:
-                self.params_sizer.AddSpacer(10)
+                self.params_sizer.AddSpacer(20)
 
             spacer = not spacer
 
@@ -1441,9 +1652,12 @@ class Unit(wx.Panel):
                 if action['num_uses'] != -1:
                     label += ', ' + str(action['num_uses']) + 'x'
 
+                action_label = wx.StaticText(self.action_panel, -1, label)
+                action_label.SetFont(fonts['small'])
+
                 hor_sizer.Add(self.all_actions[name])
                 hor_sizer.AddSpacer(10)
-                hor_sizer.Add(wx.StaticText(self.action_panel, -1, label))
+                hor_sizer.Add(action_label)
                 self.action_sizer.Add(hor_sizer)
 
         # shortcuts (action categories)
@@ -1607,7 +1821,7 @@ class ObjSummary(wx.Panel):
              len(current_in), int(obj['parameters']['capacity'])))
         ]
 
-        self.params_sizer = wx.GridSizer(3, 5)
+        self.params_sizer = wx.FlexGridSizer(3, 5)
         self.params_images = {}
         self.params_value = {}
 
@@ -1617,13 +1831,15 @@ class ObjSummary(wx.Panel):
             image = 'icon_' + param
             self.params_images[image] = wx.StaticBitmap(
                 self, wx.ID_ANY, all_graphics[image])
-            self.params_value[param] = wx.StaticText(self, -1, value)
+
+            self.params_value[param] = wx.StaticText(self, -1,  str(value))
+            self.params_value[param].SetFont(fonts['parameter'])
 
             self.params_sizer.Add(self.params_images[image])
-            self.params_sizer.Add(self.params_value[param])
+            self.params_sizer.Add(self.params_value[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 3)
 
             if spacer:
-                self.params_sizer.AddSpacer(10)
+                self.params_sizer.AddSpacer(15)
 
             spacer = not spacer
 
@@ -1640,7 +1856,7 @@ class ObjSummary(wx.Panel):
             self, -1, all_graphics['icon_group_' + u_type + 's'])
 
         self.params_sizer.Add(self.params_images['icon_enter'])
-        self.params_sizer.Add(self.params_value['enter'])
+        self.params_sizer.Add(self.params_value['enter'], 0, wx.LEFT, 5)
 
         # Make e list of all actions (scrolled): the action_panel
         self.action_panel = scrolled.ScrolledPanel(self, -1, size=(145, 100))
@@ -1671,9 +1887,12 @@ class ObjSummary(wx.Panel):
                 if action['num_uses'] != -1:
                     label += ', ' + str(action['num_uses']) + 'x'
 
+                action_label = wx.StaticText(self.action_panel, -1, label)
+                action_label.SetFont(fonts['small'])
+
                 hor_sizer.Add(self.all_actions[name])
                 hor_sizer.AddSpacer(10)
-                hor_sizer.Add(wx.StaticText(self.action_panel, -1, label))
+                hor_sizer.Add(action_label)
                 self.action_sizer.Add(hor_sizer)
 
         # shortcuts (action categories)
@@ -2005,19 +2224,16 @@ class Icon(wx.Panel):
         self.delay_bar.SetBarColor(colors[2])
 
         self.name = wx.StaticText(self, wx.ID_ANY, '')
-        self.name.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-
         self.number = wx.StaticText(self, wx.ID_ANY, '')
-        self.number.SetFont(wx.Font(25, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-
         self.attack_text = wx.StaticText(self, wx.ID_ANY, '')
         self.life_text = wx.StaticText(self, wx.ID_ANY, '')
         self.walk_text = wx.StaticText(self, wx.ID_ANY, '')
 
-        parameter_font = wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        self.attack_text.SetFont(parameter_font)
-        self.life_text.SetFont(parameter_font)
-        self.walk_text.SetFont(parameter_font)
+        self.number.SetFont(fonts['large_number'])
+        self.name.SetFont(fonts['small'])
+        self.attack_text.SetFont(fonts['parameter'])
+        self.life_text.SetFont(fonts['parameter'])
+        self.walk_text.SetFont(fonts['parameter'])
 
         self.DoLayout()
         self.update_icon(obj)
