@@ -1371,20 +1371,20 @@ class SelectionDetails(wx.Panel):
             for b_id, building in selection['buildings'].items():
                 self.displayed_objects[b_id] = ObjSummary(
                     self.unit_panel, b_id, building, self.all_graphics, is_building=True)
-                self.detail_sizer.Add(self.displayed_objects[b_id])
+                self.detail_sizer.Add(self.displayed_objects[b_id], 0, wx.ALIGN_CENTER_HORIZONTAL)
                 add_line()
 
             for t_id, trans in selection['transporter'].items():
                 self.displayed_objects[t_id] = ObjSummary(
                     self.unit_panel, t_id, trans, self.all_graphics, is_building=False)
-                self.detail_sizer.Add(self.displayed_objects[t_id])
+                self.detail_sizer.Add(self.displayed_objects[t_id], 0, wx.ALIGN_CENTER_HORIZONTAL)
                 add_line()
 
             for g_id, group in selection['groups'].items():
                 for u_id, unit in group['units'].items():
                     self.displayed_objects[(g_id, u_id)] = Unit(
                         self.unit_panel, g_id, u_id, unit, self.all_graphics)
-                    self.detail_sizer.Add(self.displayed_objects[(g_id, u_id)])
+                    self.detail_sizer.Add(self.displayed_objects[(g_id, u_id)], 0, wx.ALIGN_CENTER_HORIZONTAL)
                     add_line()
 
         self.unit_panel.SetSizer(self.detail_sizer)
@@ -1412,7 +1412,7 @@ class Unit_IGNORE(wx.Panel):
     actions as buttons in separate scrolled panel'''
 
     def __init__(self, parent, g_id, u_id, unit, all_graphics):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(150, 310))
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(130, 310))
         # self.SetMinSize((150, 300))
         self.all_graphics = all_graphics
         self.unit = unit
@@ -1617,7 +1617,7 @@ class Unit(wx.Panel):
     actions as buttons in separate scrolled panel'''
 
     def __init__(self, parent, g_id, u_id, unit, all_graphics):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(150, 310))
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(130, 310))
         # self.SetMinSize((150, 300))
         self.all_graphics = all_graphics
         self.unit = unit
@@ -1661,15 +1661,15 @@ class Unit(wx.Panel):
         self.top_left_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         name = unit['parameters']['name'] + ' ' + unit['name']
-        self.top_left_sizer.Add(wx.StaticText(self, -1, name))
-        self.top_left_sizer.AddSpacer(10)
+        name_label = wx.StaticText(self, -1, name)
+        name_label.SetFont(fonts['small'])
+        self.top_left_sizer.Add(name_label, 0, wx.TOP|wx.BOTTOM, 10)
 
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, unit_bmp))
         self.top_left_bottom_sizer.AddSpacer(10)
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, elite_bmp))
 
-        self.top_right_sizer.Add(wx.StaticBitmap(self, -1, building_bmp))
-        self.top_right_sizer.AddSpacer(5)
+        self.top_right_sizer.Add(wx.StaticBitmap(self, -1, building_bmp), 0, wx.TOP|wx.BOTTOM, 10)
         self.top_right_sizer.Add(wx.StaticBitmap(self, -1, protection_bmp))
 
         self.top_left_sizer.Add(self.top_left_bottom_sizer)
@@ -1713,7 +1713,7 @@ class Unit(wx.Panel):
             spacer = not spacer
 
         # Make e list of all actions (scrolled): the action_panel
-        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(145, 50))
+        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(130, 50))
 
         self.action_sizer = wx.BoxSizer(wx.VERTICAL)
         self.all_actions = {}
@@ -1775,7 +1775,9 @@ class Unit(wx.Panel):
         self.main_sizer.AddSpacer(15)
         self.main_sizer.Add(self.action_panel)
 
-        self.SetSizer(self.main_sizer)
+        uber_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        uber_sizer.Add(self.main_sizer, 0, wx.LEFT, 10)
+        self.SetSizer(uber_sizer)
 
     def on_action_category(self, evt):
         category = evt.GetEventObject().GetName()
@@ -1853,8 +1855,9 @@ class ObjSummary(wx.Panel):
         self.top_left_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         name = obj['parameters']['name'] + ' ' + obj['name']
-        self.top_left_sizer.Add(wx.StaticText(self, -1, name))
-        self.top_left_sizer.AddSpacer(10)
+        name_label = wx.StaticText(self, -1, name)
+        name_label.SetFont(fonts['small'])
+        self.top_left_sizer.Add(name_label, 0, wx.TOP|wx.BOTTOM, 10)
 
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, unit_bmp))
         self.top_left_bottom_sizer.AddSpacer(10)
