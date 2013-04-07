@@ -91,15 +91,15 @@ class MainFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, lambda evt, i=i:
                       self.on_shortcut(evt, i), id=ids[i])
 
-        # key F triggers fullscreen
+        # key F1 triggers fullscreen
         ind = wx.NewId()
-        shortcuts.append((wx.ACCEL_NORMAL, ord('F'), ind))
+        shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_F1, ind))
         self.Bind(wx.EVT_MENU, self.on_fullscreen, id=ind)
 
         # key ESC can be used to end fullscreen
-        ind = wx.NewId()
-        shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, ind))
-        self.Bind(wx.EVT_MENU, self.end_fullscreen, id=ind)
+        #ind = wx.NewId()
+        #shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, ind))
+        #self.Bind(wx.EVT_MENU, self.end_fullscreen, id=ind)
 
         accel_tbl = wx.AcceleratorTable(shortcuts)
         self.SetAcceleratorTable(accel_tbl)
@@ -128,9 +128,9 @@ class MainFrame(wx.Frame):
     def on_fullscreen(self, evt):
         self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
 
-    def end_fullscreen(self, evt):
-        if self.IsFullScreen():
-            self.ShowFullScreen(False)
+    #def end_fullscreen(self, evt):
+    #    if self.IsFullScreen():
+    #        self.ShowFullScreen(False)
 
     def on_shortcut(self, evt, o_id):
         g_o = self.game_obj
@@ -1128,8 +1128,8 @@ class Shop(wx.Panel):
                 u['top_sizer'].Add(u['top_right_sizer'])
 
                 # Middle Part
-                u['middle_sizer'].Add(u['num_selected'], 0, wx.LEFT|wx.RIGHT, 20)
-                u['middle_sizer'].Add(u['button_sizer'])
+                u['middle_sizer'].Add(u['num_selected'], 0, wx.LEFT, 10)
+                u['middle_sizer'].Add(u['button_sizer'], 0, wx.LEFT, 30)
 
                 # Parameter part
                 u_p = basic_params
@@ -1258,11 +1258,9 @@ class Shop(wx.Panel):
             self.buy_button.SetBackgroundColour(colors[1])
 
             self.summary_sizer.Add(title, 0, wx.TOP|wx.BOTTOM, 8)
-            self.summary_sizer.Add(self.tot_price)
-            self.summary_sizer.AddSpacer(15)
-            self.summary_sizer.Add(self.name)
-            self.summary_sizer.AddSpacer(15)
-            self.summary_sizer.Add(self.buy_button)
+            self.summary_sizer.Add(self.tot_price, 0, wx.ALIGN_CENTER_HORIZONTAL)
+            self.summary_sizer.Add(self.name, 0, wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 15)
+            self.summary_sizer.Add(self.buy_button, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
             self.main_sizer.Add(self.summary_sizer)
             add_line()

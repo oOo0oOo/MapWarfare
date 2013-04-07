@@ -77,8 +77,8 @@ class MapWarfare:
         self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
         self.new_player('asshole', 10)
         
-        title = 'Hi {0}!'.format(nickname)
-        message = 'Welcome to the game! Why don\'t you buy some units, you have {0}$ in your account...'.format(
+        title = 'Hi {0}! TOGGLE FULLSCREEN WITH F1...'.format(nickname)
+        message = 'Welcome to the game!\n\nUSE F1 TO ENTER FULLSCREEN MODE!'.format(
             self.players[nickname]['account'])
         msg_stack = {
             nickname: {'title': title, 'message': message, 'popup': True},
