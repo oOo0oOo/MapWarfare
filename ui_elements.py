@@ -96,11 +96,6 @@ class MainFrame(wx.Frame):
         shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_F1, ind))
         self.Bind(wx.EVT_MENU, self.on_fullscreen, id=ind)
 
-        # key ESC can be used to end fullscreen
-        #ind = wx.NewId()
-        #shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_ESCAPE, ind))
-        #self.Bind(wx.EVT_MENU, self.end_fullscreen, id=ind)
-
         accel_tbl = wx.AcceleratorTable(shortcuts)
         self.SetAcceleratorTable(accel_tbl)
 
@@ -127,10 +122,6 @@ class MainFrame(wx.Frame):
 
     def on_fullscreen(self, evt):
         self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
-
-    #def end_fullscreen(self, evt):
-    #    if self.IsFullScreen():
-    #        self.ShowFullScreen(False)
 
     def on_shortcut(self, evt, o_id):
         g_o = self.game_obj
@@ -1677,17 +1668,16 @@ class Unit(wx.Panel):
         self.top_sizer.Add(self.top_right_sizer)
 
         # display all parameters
-
-        params = [(
-            'life', '{0}/{1}'.format(int(self.unit['parameters']['life']), int(self.unit['parameters']['max_life']))),
-            ('shield', str(int(self.unit['parameters']['shield']))),
-            ('shoot_dist', str(int(self.unit[
-                                   'parameters']['shoot_dist']))),
-            ('walk_dist', str(int(self.unit[
-                                  'parameters']['walk_dist']))),
-            ('attack', '{0}-{1}'.format(int(self.unit['parameters'][
-                                            'attack_min']), int(self.unit['parameters']['attack_max']))),
-            ('delay', str(int(self.unit['delay'])))
+        u_p = self.unit['parameters']
+        params = [
+            ('attack', '{0}-{1}'.format(int(u_p['attack_min']), int(u_p['attack_max']))),
+            ('delay', str(int(self.unit['delay']))),
+            ('life', '{0}/{1}'.format(int(u_p['life']), int(u_p['max_life']))),
+            ('shield', str(int(u_p['shield']))),
+            ('shoot_dist', str(int(u_p['shoot_dist']))),
+            ('walk_dist', str(int(u_p['walk_dist']))),
+            ('delay_shoot', str(int(u_p['delay_shoot']))),
+            ('delay_walk', str(int(u_p['delay_walk'])))
         ]
 
         self.params_sizer = wx.FlexGridSizer(3, 5)
@@ -1704,7 +1694,7 @@ class Unit(wx.Panel):
             self.params_value[param].SetFont(fonts['parameter'])
 
             self.params_sizer.Add(self.params_images[image])
-            self.params_sizer.Add(self.params_value[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 4)
+            self.params_sizer.Add(self.params_value[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 8)
 
             if spacer:
                 self.params_sizer.AddSpacer(20)
@@ -1712,7 +1702,7 @@ class Unit(wx.Panel):
             spacer = not spacer
 
         # Make e list of all actions (scrolled): the action_panel
-        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(130, 50))
+        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(130, 100))
 
         self.action_sizer = wx.BoxSizer(wx.VERTICAL)
         self.all_actions = {}
@@ -1734,11 +1724,16 @@ class Unit(wx.Panel):
                 if action['price'] > 0:
                     label += ', ' + str(int(action['price'])) + '$'
 
+                label += '\n'
+
+                add = []
                 if action['delay'] > 0:
-                    label += ', wait ' + str(int(action['delay']))
+                    add.append('wait ' + str(int(action['delay'])))
 
                 if action['num_uses'] != -1:
-                    label += ', ' + str(action['num_uses']) + 'x'
+                    add.append(str(action['num_uses']) + 'x')
+
+                label += ', '.join(add)
 
                 action_label = wx.StaticText(self.action_panel, -1, label)
                 action_label.SetFont(fonts['small'])
@@ -1969,11 +1964,16 @@ class ObjSummary(wx.Panel):
                 if action['price'] > 0:
                     label += ', ' + str(int(action['price'])) + '$'
 
+                label += '\n'
+
+                add = []
                 if action['delay'] > 0:
-                    label += ', wait ' + str(int(action['delay']))
+                    add.append('wait ' + str(int(action['delay'])))
 
                 if action['num_uses'] != -1:
-                    label += ', ' + str(action['num_uses']) + 'x'
+                    add.append(str(action['num_uses']) + 'x')
+
+                label += ', '.join(add)
 
                 action_label = wx.StaticText(self.action_panel, -1, label)
                 action_label.SetFont(fonts['small'])
