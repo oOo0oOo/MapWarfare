@@ -36,6 +36,7 @@ class MainFrame(wx.Frame):
         colors[0] = '#000000'  # Main background (dark dark blue)
         colors[1] = '#139EC7'  # Used as main background for most panels (light blue)
         colors[2] = '#046380'  # Used as background for the summary panel (darker blue)
+        colors[3] = '#1a232d'  # Most text (except small)
 
         font_family = wx.FONTFAMILY_SWISS
         fonts['parameter'] = wx.Font(10, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
@@ -314,6 +315,7 @@ class Header(wx.Panel):
             self.displayed['icon_' + param] = wx.StaticBitmap(
                 self, bitmap=self.all_graphics['unknown'])
             self.displayed[param] = wx.StaticText(self, -1, '')
+            self.displayed[param].SetForegroundColour(colors[3])
             self.displayed[param].SetFont(fonts['title'])
 
         # Display victory difference
@@ -679,6 +681,7 @@ class Summary(wx.Panel):
             name = field_names[i]
             image = image_names[i]
             self.text_fields[name] = wx.StaticText(self, -1, '    ')
+            self.text_fields[name].SetForegroundColour(colors[3])
             self.text_fields[name].SetFont(fonts['parameter'])
 
             if name != 'name':
@@ -895,8 +898,7 @@ class MoveUnits(wx.Dialog):
 
         for g_id, group in selected_groups.items():
             disp = str(g_id) + ': ' + group['name']
-            self.main_sizer.Add(
-                wx.StaticText(self.scrolled_panel, label=disp))
+            self.main_sizer.Add(wx.StaticText(self.scrolled_panel, label=disp))
             self.sizers[g_id] = wx.BoxSizer(wx.HORIZONTAL)
             for u_id, unit in group['units'].items():
                 u_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1087,6 +1089,7 @@ class Shop(wx.Panel):
                     self, -1, str(basic_params['price']) + '$')
                 u['price'].SetFont(fonts['small'])
                 u['num_selected'] = wx.StaticText(self, -1, '0')
+                u['num_selected'].SetForegroundColour(colors[3])
                 u['num_selected'].SetFont(fonts['large_number'])
 
                 for but in ['button_plus', 'button_minus', 'button_5', 'button_10']:
@@ -1141,6 +1144,7 @@ class Shop(wx.Panel):
                     image = 'icon_' + param
                     params_image = wx.StaticBitmap(self, wx.ID_ANY, all_graphics[image])
                     params_value = wx.StaticText(self, -1, value)
+                    params_value.SetForegroundColour(colors[3])
                     params_value.SetFont(fonts['parameter'])
 
                     u['parameter_sizer'].Add(params_image, 0, wx.ALL, 5)
@@ -1217,6 +1221,7 @@ class Shop(wx.Panel):
                     image = 'icon_' + param
                     params_image = wx.StaticBitmap(self, wx.ID_ANY, all_graphics[image])
                     params_value = wx.StaticText(self, -1, value)
+                    params_value.SetForegroundColour(colors[3])
                     params_value.SetFont(fonts['parameter'])
 
                     u['parameter_sizer'].Add(params_image, 0, wx.ALL, 5)
@@ -1236,8 +1241,11 @@ class Shop(wx.Panel):
 
             self.summary_sizer = wx.BoxSizer(wx.VERTICAL)
             title = wx.StaticText(self, -1, 'Shop')
+            title.SetForegroundColour(colors[3])
             title.SetFont(fonts['large_number'])
+
             self.tot_price = wx.StaticText(self, -1, '0$')
+            self.tot_price.SetForegroundColour(colors[3])
             self.tot_price.SetFont(fonts['title'])
 
             self.name = wx.TextCtrl(self, -1, '')
@@ -1453,6 +1461,7 @@ class Unit_IGNORE(wx.Panel):
             self.params_images[image] = wx.StaticBitmap(
                 self, wx.ID_ANY, all_graphics[image])
             self.params_value[param] = wx.StaticText(self, -1, '')
+            self.params_value[param].SetForegroundColour(colors[3])
 
         # Make e list of all actions (scrolled): the action_panel
         self.action_panel = scrolled.ScrolledPanel(self, -1, size=(145, 50))
@@ -1683,6 +1692,7 @@ class Unit(wx.Panel):
             self.params_images[image] = wx.StaticBitmap(
                 self, wx.ID_ANY, all_graphics[image])
             self.params_value[param] = wx.StaticText(self, -1, '')
+            self.params_value[param].SetForegroundColour(colors[3])
             self.params_value[param].SetFont(fonts['parameter'])
 
             self.params_sizer.Add(self.params_images[image])
@@ -1797,11 +1807,10 @@ class Unit(wx.Panel):
         for param, value in params:
             self.params_value[param].SetLabel(value)
 
-            
         if u_p['life'] < 20:
             self.params_value['life'].SetForegroundColour(wx.RED)
         else:
-            self.params_value['life'].SetForegroundColour(wx.BLACK)
+            self.params_value['life'].SetForegroundColour(colors[3])
 
 
     def on_unit_action(self, evt):
@@ -1854,6 +1863,7 @@ class ObjSummary(wx.Panel):
         name = obj['parameters']['name'] + ' ' + obj['name']
         name_label = wx.StaticText(self, -1, name)
         name_label.SetFont(fonts['small'])
+
         self.top_left_sizer.Add(name_label, 0, wx.TOP|wx.BOTTOM, 10)
 
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, unit_bmp))
@@ -1888,6 +1898,8 @@ class ObjSummary(wx.Panel):
                 current = 'No groups transported'
 
         self.current = wx.StaticText(self, -1, current)
+        self.current.SetFont(fonts['small'])
+        self.current.SetForegroundColour(colors[3])
 
         # display all parameters
         try:
@@ -1920,6 +1932,7 @@ class ObjSummary(wx.Panel):
 
             self.params_value[param] = wx.StaticText(self, -1,  str(value))
             self.params_value[param].SetFont(fonts['parameter'])
+            self.params_value[param].SetForegroundColour(colors[3])
 
             self.params_sizer.Add(self.params_images[image])
             self.params_sizer.Add(self.params_value[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 3)
@@ -1980,6 +1993,7 @@ class ObjSummary(wx.Panel):
 
                 action_label = wx.StaticText(self.action_panel, -1, label)
                 action_label.SetFont(fonts['small'])
+                action_label.SetForegroundColour(colors[3])
 
                 hor_sizer.Add(self.all_actions[name])
                 hor_sizer.Add(action_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 10)
@@ -2088,7 +2102,7 @@ class ObjSummary(wx.Panel):
         if new_obj['parameters'] < 20:
             self.params_value['life'].SetForegroundColour(wx.RED)
         else:
-            self.params_value['life'].SetForegroundColour(wx.BLACK)
+            self.params_value['life'].SetForegroundColour(colors[3])
 
     def on_unit_action(self, evt):
         action_name = evt.GetEventObject().GetName()
@@ -2334,6 +2348,11 @@ class Icon(wx.Panel):
         self.life_text.SetFont(fonts['parameter'])
         self.walk_text.SetFont(fonts['parameter'])
 
+        self.number.SetForegroundColour(colors[3])
+        self.attack_text.SetForegroundColour(colors[3])
+        self.life_text.SetForegroundColour(colors[3])
+        self.walk_text.SetForegroundColour(colors[3])
+
         self.DoLayout()
         self.update_icon(obj)
 
@@ -2446,7 +2465,7 @@ class Icon(wx.Panel):
         if use_red:
             self.life_text.SetForegroundColour(wx.RED)
         else:
-            self.life_text.SetForegroundColour(colors[0])
+            self.life_text.SetForegroundColour(colors[3])
 
         self.walk_text.SetLabel(str(int(walk_dist)))
 
