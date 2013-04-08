@@ -2065,19 +2065,30 @@ class ObjSummary(wx.Panel):
 
         self.current.SetLabel(current)
 
+        # display all parameters
+        try:
+            wd = str(int(new_obj['parameters']['walk_dist']))
+        except KeyError:
+            wd = '0'
+
         params = [(
             'life', '{0}/{1}'.format(int(new_obj['parameters']['life']), int(new_obj['parameters']['max_life']))),
             ('shield', str(int(new_obj['parameters']['shield']))),
-            ('shoot_dist', str(int(new_obj[
-                                   'parameters']['shoot_dist']))),
+            ('shoot_dist', str(int(new_obj['parameters']['shoot_dist']))),
             ('walk_dist', wd),
             ('attack', '{0}-{1}'.format(int(new_obj['parameters'][
                                             'attack_min']), int(new_obj['parameters']['attack_max']))),
-            ('delay', str(int(new_obj['delay'])))
+            ('delay', str(int(new_obj['delay']))),
+            ('capacity', '{0}/{1}'.format(len(new_obj['current']), int(new_obj['parameters']['capacity'])))
         ]
 
         for param, value in params:
             self.params_value[param].SetLabel(value)
+
+        if new_obj['parameters'] < 20:
+            self.params_value['life'].SetForegroundColour(wx.RED)
+        else:
+            self.params_value['life'].SetForegroundColour(wx.BLACK)
 
     def on_unit_action(self, evt):
         action_name = evt.GetEventObject().GetName()
@@ -2413,6 +2424,9 @@ class Icon(wx.Panel):
 
         if delay_max > 20:
             delay_max = 20
+
+        if walk_dist == 1000000:
+            walk_dist = 0
 
         val = int(round(float(delay_max)/20*100))
         self.delay_bar.SetValue(val)
