@@ -4,33 +4,23 @@ from collections import Counter as count
 
 
 def generate_random_name():
-    vocals = 'aaaeeeiiiooouuuyj'
-    consonants = 'bcdfghklmnprstvwxz'
-    vocals = [v for v in vocals]
-    vocals += ['ue', 'ae', 'oe', 'au', 'qu']
-    consonants = [c for c in consonants]
-    name = ''
-    while len(name) < random.randrange(3, 6):
-        if len(name) == 0:
-            if random.random() > 0.5:
-                name += random.choice(vocals)
-                if random.random() > 0.8:
-                    num = 2
-                else:
-                    num = 1
-                for i in range(num):
-                    name += random.choice(consonants)
-            else:
-                name += random.choice(consonants)
-        else:
-            name += random.choice(vocals)
-            if random.random() > 0.7:
-                num = 2
-            else:
-                num = 1
-            for i in range(num):
-                name += random.choice(consonants)
+    syllables = {
+        'part1': ['An', 'Lau', 'Mar', 'Si', 'Do', 'Mi', 'Al', 'Ro',
+                  'Ste', 'Na', 'Am', 'San', 'Clau', 'Sil', 'Ab', 'Le',
+                  'No', 'Lu', 'Da', 'Ni', 'Jo', 'El', 'Sa', 'Ben'],
+
+        'part2': ['mi', 'li', 'mu'],
+
+        'part3': ['dre', 'rin', 'tin', 'ro', 'co', 'fan', 'as',
+                  'dro', 'van', 'dio', 'on', 'man', 'el', 'ca', 'id',
+                  'vin', 'nas', 'an', 'bin']
+    }
+
+    name = random.choice(syllables['part1'])
+    name += random.choice(syllables['part3'])
+
     return name
+
 
 class MapWarfare:
 
@@ -70,13 +60,13 @@ class MapWarfare:
 
         # Create home base (building #0), this is used by tests
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
-        
+
         # Add extra units to start off...
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
         self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
         self.new_player('asshole', 10)
-        
+
         title = 'Hi {0}! TOGGLE FULLSCREEN USING F1...'.format(nickname)
         message = 'Welcome to the game!\n\nUSE F1 KEY TO ENTER FULLSCREEN MODE!\n\nUse number keys (0-9) to select groups...'.format(
             self.players[nickname]['account'])
@@ -94,7 +84,7 @@ class MapWarfare:
                 all.append(player['victory_points'])
 
         if all:
-            avg = round(sum(all)/len(all),1)
+            avg = round(sum(all)/len(all), 1)
         else:
             avg = 0
         return self.players[nickname]['victory_points'] - avg
@@ -1220,7 +1210,6 @@ class MapWarfare:
                     elif ind in pl['buildings'].keys():
                         name = pl['buildings'][ind]['parameters']['name']
                         units[team].append(name)
-
 
         for team in ['starters', 'enemies']:
             occ = count(units[team])
