@@ -1669,16 +1669,8 @@ class Unit(wx.Panel):
 
         # display all parameters
         u_p = self.unit['parameters']
-        params = [
-            ('attack', '{0}-{1}'.format(int(u_p['attack_min']), int(u_p['attack_max']))),
-            ('delay', str(int(self.unit['delay']))),
-            ('life', '{0}/{1}'.format(int(u_p['life']), int(u_p['max_life']))),
-            ('shield', str(int(u_p['shield']))),
-            ('shoot_dist', str(int(u_p['shoot_dist']))),
-            ('walk_dist', str(int(u_p['walk_dist']))),
-            ('delay_shoot', str(int(u_p['delay_shoot']))),
-            ('delay_walk', str(int(u_p['delay_walk'])))
-        ]
+        params = ['attack','delay','life','shield','shoot_dist',
+                    'walk_dist','delay_shoot','delay_walk']
 
         self.params_sizer = wx.FlexGridSizer(3, 5)
         self.params_images = {}
@@ -1686,11 +1678,11 @@ class Unit(wx.Panel):
 
         spacer = True
 
-        for param, value in params:
+        for param in params:
             image = 'icon_' + param
             self.params_images[image] = wx.StaticBitmap(
                 self, wx.ID_ANY, all_graphics[image])
-            self.params_value[param] = wx.StaticText(self, -1, value)
+            self.params_value[param] = wx.StaticText(self, -1, '')
             self.params_value[param].SetFont(fonts['parameter'])
 
             self.params_sizer.Add(self.params_images[image])
@@ -1700,6 +1692,8 @@ class Unit(wx.Panel):
                 self.params_sizer.AddSpacer(20)
 
             spacer = not spacer
+
+        self.update_parameters(self.unit)
 
         # Make e list of all actions (scrolled): the action_panel
         self.action_panel = scrolled.ScrolledPanel(self, -1, size=(130, 100))
@@ -1787,19 +1781,28 @@ class Unit(wx.Panel):
             self.GetEventHandler().ProcessEvent(new_event)
 
     def update_parameters(self, new_obj):
-        params = [(
-            'life', '{0}/{1}'.format(int(new_obj['parameters']['life']), int(new_obj['parameters']['max_life']))),
-            ('shield', str(int(new_obj['parameters']['shield']))),
-            ('shoot_dist', str(int(new_obj[
-                                   'parameters']['shoot_dist']))),
-            ('walk_dist', str(int(new_obj['parameters']['walk_dist']))),
-            ('attack', '{0}-{1}'.format(int(new_obj['parameters'][
-                                            'attack_min']), int(new_obj['parameters']['attack_max']))),
-            ('delay', str(int(new_obj['delay'])))
+        # display all parameters
+        u_p = new_obj['parameters']
+        params = [
+            ('attack', '{0}-{1}'.format(int(u_p['attack_min']), int(u_p['attack_max']))),
+            ('delay', str(int(self.unit['delay']))),
+            ('life', '{0}/{1}'.format(int(u_p['life']), int(u_p['max_life']))),
+            ('shield', str(int(u_p['shield']))),
+            ('shoot_dist', str(int(u_p['shoot_dist']))),
+            ('walk_dist', str(int(u_p['walk_dist']))),
+            ('delay_shoot', str(int(u_p['delay_shoot']))),
+            ('delay_walk', str(int(u_p['delay_walk'])))
         ]
 
         for param, value in params:
             self.params_value[param].SetLabel(value)
+
+            if param == 'life':
+                if value < 20:
+                    self.params_value['life'].SetForegroundColour(wx.RED)
+                else:
+                    self.params_value['life'].SetForegroundColour(wx.BLACK)
+                    
 
     def on_unit_action(self, evt):
         action_name = evt.GetEventObject().GetName()
