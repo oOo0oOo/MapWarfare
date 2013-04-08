@@ -467,7 +467,7 @@ class MapWarfareServer(Server):
 
                 self.frame.play_flag = False
 
-            sleep(0.001)
+            sleep(0.005)
 
 s = MapWarfareServer(localaddr=('0.0.0.0', 31425))  # 0.0.0.0
 s.Launch()
