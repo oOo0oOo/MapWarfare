@@ -1785,7 +1785,7 @@ class Unit(wx.Panel):
         u_p = new_obj['parameters']
         params = [
             ('attack', '{0}-{1}'.format(int(u_p['attack_min']), int(u_p['attack_max']))),
-            ('delay', str(int(self.unit['delay']))),
+            ('delay', str(int(new_obj['delay']))),
             ('life', '{0}/{1}'.format(int(u_p['life']), int(u_p['max_life']))),
             ('shield', str(int(u_p['shield']))),
             ('shoot_dist', str(int(u_p['shoot_dist']))),
