@@ -66,12 +66,10 @@ class ServerUI(wx.Frame):
             self.play_flag = -1
 
     def change_duration(self, evt):
-        tick_duration = int(self.manual_entry.GetValue())
-        self.duration_flag = tick_duration
+        self.duration_flag = float(self.manual_entry.GetValue())
 
     def on_slide(self, evt):
-        val = self.slider.GetValue()
-        self.manual_entry.SetValue(str(val))
+        self.manual_entry.SetValue(str(self.slider.GetValue()))
 
 
 class ClientChannel(Channel):
@@ -469,7 +467,7 @@ class MapWarfareServer(Server):
 
                 self.frame.play_flag = False
 
-            sleep(0.005)
+            sleep(0.001)
 
 s = MapWarfareServer(localaddr=('0.0.0.0', 31425))  # 0.0.0.0
 s.Launch()
