@@ -1797,12 +1797,12 @@ class Unit(wx.Panel):
         for param, value in params:
             self.params_value[param].SetLabel(value)
 
-            if param == 'life':
-                if value < 20:
-                    self.params_value['life'].SetForegroundColour(wx.RED)
-                else:
-                    self.params_value['life'].SetForegroundColour(wx.BLACK)
-                    
+            
+        if u_p['life'] < 20:
+            self.params_value['life'].SetForegroundColour(wx.RED)
+        else:
+            self.params_value['life'].SetForegroundColour(wx.BLACK)
+
 
     def on_unit_action(self, evt):
         action_name = evt.GetEventObject().GetName()
