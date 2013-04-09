@@ -22,7 +22,7 @@ class DistancePage(wiz.WizardPageSimple):
         self.sizer.Add(self.distance)
 
     def get_value(self):
-        return {'distance': int(self.distance.GetValue())}
+        return {'distance': int(round(float(self.distance.GetValue())))}
 
 
 class OwnPage(wiz.WizardPageSimple):

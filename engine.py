@@ -965,6 +965,9 @@ class MapWarfare:
 
     def fight(self, starters, enemies, distance):
 
+        # round the distance
+        distance = int(round(distance))
+
         def create_agent(obj):
             # How many shots how much damage per shot
             o_p = obj['parameters']
@@ -988,14 +991,22 @@ class MapWarfare:
 
             elif distance <= o_p['shoot_dist'] + ext_shoot_dist:
                 # scale attack by extra shoot dist
-                fact = ((float(distance) - o_p['shoot_dist'])/ext_shoot_dist)
-                print 'factor', fact
+                fact = 1-((float(distance) - o_p['shoot_dist'])/ext_shoot_dist)
+
+                if fact < 0:
+                    fact = 0
+
                 attack *= fact
-                if obj['delay'] <= 0:
+
+                if obj['delay'] == 0 and attack > 0:
                     delay = True
-                else:
+                elif attack > 0:
                     damage_factor = self.game_parameters['engine_parameters']['delay_damage']
                     attack *= damage_factor
+                    delay = False
+                else:
+                    attack = 0
+                    num_shots = 0
                     delay = False
 
             else:

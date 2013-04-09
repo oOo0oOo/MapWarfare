@@ -369,7 +369,7 @@ class Header(wx.Panel):
                     val = 0
                 if val > 100:
                     val = 100
-                
+
                 self.victory.SetValue(val)
                 self.victory.Refresh()
             elif param == 'sectors':
@@ -1058,7 +1058,7 @@ class Shop(wx.Panel):
 
         def add_line():
             line = wx.StaticLine(self, size=(2, 310))
-            self.main_sizer.Add(line, 0, wx.LEFT|wx.RIGHT, 20)
+            self.main_sizer.Add(line, 0, wx.LEFT | wx.RIGHT, 20)
 
         add_line()
 
@@ -1266,9 +1266,9 @@ class Shop(wx.Panel):
             self.buy_button.Bind(wx.EVT_BUTTON, self.buy_group)
             self.buy_button.SetBackgroundColour(colors[1])
 
-            self.summary_sizer.Add(title, 0, wx.TOP|wx.BOTTOM, 8)
+            self.summary_sizer.Add(title, 0, wx.TOP | wx.BOTTOM, 8)
             self.summary_sizer.Add(self.tot_price, 0, wx.ALIGN_CENTER_HORIZONTAL)
-            self.summary_sizer.Add(self.name, 0, wx.TOP|wx.BOTTOM|wx.ALIGN_CENTER_HORIZONTAL, 15)
+            self.summary_sizer.Add(self.name, 0, wx.TOP | wx.BOTTOM | wx.ALIGN_CENTER_HORIZONTAL, 15)
             self.summary_sizer.Add(self.buy_button, 0, wx.ALIGN_CENTER_HORIZONTAL)
 
             self.main_sizer.Add(self.summary_sizer)
@@ -1676,13 +1676,13 @@ class Unit(wx.Panel):
         name = unit['parameters']['name'] + ' ' + unit['name']
         name_label = wx.StaticText(self, -1, name)
         name_label.SetFont(fonts['small'])
-        self.top_left_sizer.Add(name_label, 0, wx.TOP|wx.BOTTOM, 10)
+        self.top_left_sizer.Add(name_label, 0, wx.TOP | wx.BOTTOM, 10)
 
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, unit_bmp))
         self.top_left_bottom_sizer.AddSpacer(10)
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, elite_bmp))
 
-        self.top_right_sizer.Add(wx.StaticBitmap(self, -1, building_bmp), 0, wx.TOP|wx.BOTTOM, 10)
+        self.top_right_sizer.Add(wx.StaticBitmap(self, -1, building_bmp), 0, wx.TOP | wx.BOTTOM, 10)
         self.top_right_sizer.Add(wx.StaticBitmap(self, -1, protection_bmp))
 
         self.top_left_sizer.Add(self.top_left_bottom_sizer)
@@ -1692,8 +1692,8 @@ class Unit(wx.Panel):
 
         # display all parameters
         u_p = self.unit['parameters']
-        params = ['attack','delay','life','shield','shoot_dist',
-                    'walk_dist','delay_shoot','delay_walk']
+        params = ['attack', 'delay', 'life', 'shield', 'shoot_dist',
+                  'walk_dist', 'delay_shoot', 'delay_walk']
 
         self.params_sizer = wx.FlexGridSizer(3, 5)
         self.params_images = {}
@@ -1826,7 +1826,6 @@ class Unit(wx.Panel):
         else:
             self.params_value['life'].SetForegroundColour(colors[3])
 
-
     def on_unit_action(self, evt):
         action_name = evt.GetEventObject().GetName()
         # Create an Action Event with all the necessary parameters
@@ -1878,7 +1877,7 @@ class ObjSummary(wx.Panel):
         name_label = wx.StaticText(self, -1, name)
         name_label.SetFont(fonts['small'])
 
-        self.top_left_sizer.Add(name_label, 0, wx.TOP|wx.BOTTOM, 10)
+        self.top_left_sizer.Add(name_label, 0, wx.TOP | wx.BOTTOM, 10)
 
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, unit_bmp))
         self.top_left_bottom_sizer.AddSpacer(10)
