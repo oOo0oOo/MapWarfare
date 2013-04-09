@@ -364,9 +364,10 @@ class Header(wx.Panel):
             if param == 'diff':
                 val = (self.middle + float(value)) / (2 * self.middle)
                 val = int(round(float(self.middle + value)/(2 * self.middle)*100))
+
                 if val < 0:
                     val = 0
-                if val > 1000:
+                if val > 100:
                     val = 100
                 
                 self.victory.SetValue(val)
@@ -448,6 +449,10 @@ class BottomPanel(wx.Panel):
                     updated[o_id] = self.game_obj['transporter'][o_id]
 
             self.detail_panel.update_displayed(updated)
+
+        elif isinstance(self.detail_panel, Shop):
+            build = self.game_obj['buildings'][self.current_selection[0]]
+            self.detail_panel.update_displayed(build)
 
     def update_allowed_actions(self):
         sel = {'groups': [], 'transporter': [], 'buildings': []}
@@ -1339,6 +1344,10 @@ class Shop(wx.Panel):
         self.connection.Send({"action": "buy_transporter", "transporter": t_id,
                              'name': name, 'sector': self.building['sector']})
 
+    def update_displayed(self, obj):
+
+        self.build_displayed.update_parameters(obj)
+
 
 class SelectionDetails(wx.Panel):
 
@@ -2051,6 +2060,7 @@ class ObjSummary(wx.Panel):
             self.GetEventHandler().ProcessEvent(new_event)
 
     def update_parameters(self, new_obj):
+        print 'Updating', new_obj['name']
         try:
             wd = str(int(new_obj['parameters']['walk_dist']))
         except KeyError:

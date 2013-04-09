@@ -69,8 +69,8 @@ class MapWarfare:
         # Add extra units to start off...
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
-        # self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
-        # self.new_player('asshole', 10)
+        self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
+        self.new_player('asshole', 10)
 
         title = 'Hi {0}! TOGGLE FULLSCREEN USING F1...'.format(nickname)
         message = 'Welcome to the game!\n\nUSE F1 KEY TO ENTER FULLSCREEN MODE!\n\nUse number keys (0-9) to select groups...'.format(
@@ -356,12 +356,14 @@ class MapWarfare:
             if action['level'] == 'groups':
                 self.new_group(
                     player, action['parameters'], sector, costs=False)
+
             elif action['level'] == 'transporter':
-                self.new_transporter(
-                    player, action['parameters'], sector, costs=False)
+                self.new_transporter(player, action['parameters'], sector, costs=False)
+
             elif action['level'] == 'buildings':
                 self.new_building(
                     player, action['parameters'], sector, costs=False)
+
             return True
 
         elif action['type'] == 'change':
@@ -986,7 +988,9 @@ class MapWarfare:
 
             elif distance <= o_p['shoot_dist'] + ext_shoot_dist:
                 # scale attack by extra shoot dist
-                attack *= (float(distance) - o_p['shoot_dist'])/ext_shoot_dist
+                fact = ((float(distance) - o_p['shoot_dist'])/ext_shoot_dist)
+                print 'factor', fact
+                attack *= fact
                 if obj['delay'] <= 0:
                     delay = True
                 else:
