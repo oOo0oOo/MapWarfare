@@ -1,6 +1,5 @@
-import wx
+import wx, engine
 import wx.lib.scrolledpanel as scrolled
-import engine
 
 
 class FightTester(wx.Dialog):
