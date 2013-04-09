@@ -832,7 +832,7 @@ class DetailPage(wx.Dialog):
         self.sub_elements = {}
 
         order = [
-            'name', 'price', 'unit_type', 'max_life', 'life', 'shield', 'capacity', 'enter', 'transports',
+            'name', 'price', 'unit_type', 'max_life', 'life', 'max_shield', 'shield', 'capacity', 'enter', 'transports',
             'shop_units', 'shop_transporter', 'delay_in', 'delay_out', 'attack_min', 'attack_max',
             'num_enemies', 'shield_factor', 'shoot_dist', 'delay_shoot', 'walk_dist', 'delay_walk', 'elite']
 
@@ -864,6 +864,8 @@ class DetailPage(wx.Dialog):
                     self.sub_elements[param] = this
 
             except KeyError:
+                if param == 'max_shield':
+                    self.obj['basic_parameters']['max_shield'] = 0
                 pass
 
         self.action_tree = wx.TreeCtrl(self, -1, size=(300, 350))
