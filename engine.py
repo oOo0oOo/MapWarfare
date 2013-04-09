@@ -13,12 +13,12 @@ def generate_random_name():
 
         'part3': ['dre', 'rin', 'tin', 'ro', 'co', 'fan', 'as',
                   'dro', 'van', 'dio', 'on', 'man', 'el', 'ca', 'id',
-                  'vin', 'nas', 'an', 'bin', 'las', 'min', 'bert', 'dy', 
+                  'vin', 'nas', 'an', 'bin', 'las', 'min', 'bert', 'dy',
                   'gel', 'nio', 'is']
     }
 
     name = random.choice(syllables['part1'])
-    
+
     if random.random() > 0.85:
         name += random.choice(syllables['part2'])
 
@@ -278,6 +278,21 @@ class MapWarfare:
                     u['parameters']['max_life'] += new_change
                 del changes['max_life']
 
+            # Now Max_shield
+            if 'max_shield' in changes.keys():
+                change = changes['max_shield']
+
+                new_change = round(random.normalvariate(
+                    change, action['random'] * change), 0)
+                if (u['parameters']['max_shield'] + new_change) <= 0:
+                    del u
+                    if o_type == 'groups' and len(self.players[nickname]['groups'][o_id]['units']) == 0:
+                        del self.players[nickname]['groups'][o_id]
+                    return True
+                else:
+                    u['parameters']['max_shield'] += new_change
+                del changes['max_shield']
+
             if 'life' in changes.keys():
                 change = changes['life']
 
@@ -313,6 +328,11 @@ class MapWarfare:
 
                 elif param == 'name':
                     u['name'] = new_change
+
+                elif param == 'shield':
+                    max_shield = u['parameters']['max_shield']
+                    if u['parameters']['shield'] + new_change > max_shield:
+                        new_change = max_shield - u['parameters']['shield']
 
                 else:
                     try:
