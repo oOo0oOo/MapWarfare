@@ -364,6 +364,11 @@ class Header(wx.Panel):
             if param == 'diff':
                 val = (self.middle + float(value)) / (2 * self.middle)
                 val = int(round(float(self.middle + value)/(2 * self.middle)*100))
+                if val < 0:
+                    val = 0
+                if val > 1000:
+                    val = 100
+                
                 self.victory.SetValue(val)
                 self.victory.Refresh()
             elif param == 'sectors':
