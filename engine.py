@@ -5,18 +5,23 @@ from collections import Counter as count
 
 def generate_random_name():
     syllables = {
-        'part1': ['An', 'Lau', 'Mar', 'Si', 'Do', 'Mi', 'Al', 'Ro',
-                  'Ste', 'Na', 'Am', 'San', 'Clau', 'Sil', 'Ab', 'Le',
-                  'No', 'Lu', 'Da', 'Ni', 'Jo', 'El', 'Sa', 'Ben'],
+        'part1': ['An', 'Lau', 'Mar', 'Ar', 'Si', 'Do', 'Mi', 'Al', 'Ro',
+                  'Ste', 'Na', 'Am', 'At', 'San', 'Clau', 'Sil', 'Ab', 'Le',
+                  'No', 'Lu', 'Da', 'Ni', 'Jo', 'El', 'Sa', 'Ben', 'Lo'],
 
-        'part2': ['mi', 'li', 'mu'],
+        'part2': ['mi', 'li', 'mu', 'co', 'ri', 'to'],
 
         'part3': ['dre', 'rin', 'tin', 'ro', 'co', 'fan', 'as',
                   'dro', 'van', 'dio', 'on', 'man', 'el', 'ca', 'id',
-                  'vin', 'nas', 'an', 'bin']
+                  'vin', 'nas', 'an', 'bin', 'las', 'min', 'bert', 'dy', 
+                  'gel', 'nio', 'is']
     }
 
     name = random.choice(syllables['part1'])
+    
+    if random.random() > 0.85:
+        name += random.choice(syllables['part2'])
+
     name += random.choice(syllables['part3'])
 
     return name
@@ -64,8 +69,8 @@ class MapWarfare:
         # Add extra units to start off...
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
-        self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
-        self.new_player('asshole', 10)
+        # self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
+        # self.new_player('asshole', 10)
 
         title = 'Hi {0}! TOGGLE FULLSCREEN USING F1...'.format(nickname)
         message = 'Welcome to the game!\n\nUSE F1 KEY TO ENTER FULLSCREEN MODE!\n\nUse number keys (0-9) to select groups...'.format(
