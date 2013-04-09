@@ -432,14 +432,26 @@ class ActionDetail(wx.Dialog):
         except KeyError:
             self.is_change = False
 
+        choices = {
+        'type': ['new', 'change'],
+        'target': ['own', 'enemy'],
+        'level': ['id', 'groups', 'buildings', 'transporter', 'player'],
+        'num_units': False, 'random': False
+
+        }
+
         for param, value in action.items():
             if param not in ('changes'):
                 # Create the sizer, label and textcntrl
                 this = []
                 this.append(wx.BoxSizer(wx.HORIZONTAL))
                 this.append(wx.StaticText(self, -1, param))
-                this.append(
-                    wx.TextCtrl(self, -1, str(value), size=(100, 20)))
+                if choices[param]:
+                    this.append(wx.ComboBox(self, size=(100, 20), choices=choices[param]))
+                    this[2].SetStringSelection(value)
+                else:
+                    this.append(wx.TextCtrl(self, -1, str(value), size=(40, 20)))
+                
                 # put them in order, add spacer and add to main sizer
                 this[0].Add(this[1])
                 this[0].AddSpacer(10)
@@ -516,7 +528,7 @@ class ActionDetail(wx.Dialog):
 
     def on_exit(self, evt):
         for param, val in self.sub_elements.items():
-            value = val[2].GetValue()
+            value = val[2].GetStringSelection()
             if param == 'random':
                 self.action[param] = float(value)
             else:
