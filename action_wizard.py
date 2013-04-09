@@ -8,7 +8,7 @@ def makePageTitle(wizPg, title):
     title = wx.StaticText(wizPg, -1, title)
     title.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
     sizer.Add(title, 0, wx.ALIGN_CENTRE | wx.ALL, 5)
-    sizer.Add(wx.StaticLine(wizPg, -1), 0, wx.EXPAND | wx.ALL, 5)
+    sizer.Add(wx.StaticLine(wizPg, -1), 0, wx.EXPAND | wx.ALL, 4)
     return sizer
 
 
