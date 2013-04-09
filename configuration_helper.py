@@ -57,13 +57,13 @@ class ConfigurationHelper(wx.Dialog):
 
         self.card_btns = {}
         self.unit_btns = {}
-        self.unit_sizer = wx.GridSizer(3, 10)
+        self.unit_sizer = wx.FlexGridSizer(3, 10)
 
         self.transporter_btns = {}
-        self.transporter_sizer = wx.GridSizer(3, 10)
+        self.transporter_sizer = wx.FlexGridSizer(3, 10)
 
         self.building_btns = {}
-        self.building_sizer = wx.GridSizer(3, 10)
+        self.building_sizer = wx.FlexGridSizer(3, 10)
 
         self.card_btns = {}
         # Card sizers holds all sizers necessary for the display of categories
@@ -754,7 +754,7 @@ class EngineParameters(wx.Dialog):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.sub_elements = {}
         self.main_sizer.AddSpacer(50)
-        
+
         param_order = ['start_account', 'constant_per_tick', 'per_sector_per_tick', 'sector_takeover',
             'take_over_factor', 'max_victory_diff', 'delay_damage', 
             'protection_effect', 'protection_in', 'protection_out', 'extra_shoot_dist', 'tick_duration'
