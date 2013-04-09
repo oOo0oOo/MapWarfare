@@ -754,7 +754,14 @@ class EngineParameters(wx.Dialog):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.sub_elements = {}
         self.main_sizer.AddSpacer(50)
-        for param, value in engine_parameters.items():
+        
+        param_order = ['start_account', 'constant_per_tick', 'per_sector_per_tick', 'sector_takeover',
+            'take_over_factor', 'max_victory_diff', 'delay_damage', 
+            'protection_effect', 'protection_in', 'protection_out', 'extra_shoot_dist', 'tick_duration'
+            ]
+
+        for param in param_order:
+            value = engine_parameters[param]
             if param not in ('all_sectors'):
                 # Create the sizer, label and textcntrl
                 this = []
