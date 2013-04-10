@@ -4,6 +4,7 @@ import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.pygauge as pg
 import action_wizard
 from collections import Counter
+from math import exp
 
 INITIATE_ACTION = wx.NewEventType()
 EVT_INITIATE_ACTION = wx.PyEventBinder(INITIATE_ACTION, 1)
@@ -2455,20 +2456,20 @@ class Icon(wx.Panel):
                 # Buildings do not have a walk_dist
                 walk_dist = 0
 
-        if delay_max > 20:
-            delay_max = 20
-
         if walk_dist == 1000000:
             walk_dist = 0
 
-        val = int(round(float(delay_max)/20*100))
-        self.delay_bar.SetValue(val)
-        if delay_max == 0:
-            self.delay_bar.SetBackgroundColour(wx.GREEN)
-        else:
-            self.delay_bar.SetBackgroundColour(colors[1])
+        # Delay bar scaling 
+        # Exponential decay: N(t) = N0 * exp(-1 * f * t)
+        # Where f is decay constant used to scale decay
+        # N0 is 100% delay bar...
 
-        if 0 < delay_max <= 3:
+        val = round(100 * exp(-0.05 * delay_max))
+        self.delay_bar.SetValue(int(val))
+
+        if delay_max == 0:
+            self.delay_bar.SetBarColour(wx.GREEN)
+        elif 0 < delay_max <= 3:
             self.delay_bar.SetBarColour('#FF6600')
         else:
             self.delay_bar.SetBarColour(colors[2])
