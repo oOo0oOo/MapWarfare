@@ -18,9 +18,9 @@ class ConfigurationHelper(wx.Dialog):
             #(can be changed during game)
             'tick_duration': 10,
             # How much $ in initial account
-            'start_account': 2000,
+            'start_account': 300,
             # These are the sectors defined at the top
-            'all_sectors': {1: 0.5, 2: 1, 3: 2, 4: 1},
+            'all_sectors': {1: {'weight':0.5, 'victory':0}, 2: {'weight':0.5,'victory':0}, 3: {'weight':0.5, 'victory':0}},
             # Rewards ($)
             'per_sector_per_tick': 3,
             'sector_takeover': 250,
