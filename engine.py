@@ -1,6 +1,7 @@
 import random
 import copy
 from collections import Counter as count
+from collections import defaultdict
 
 
 def generate_random_name():
@@ -241,6 +242,11 @@ class MapWarfare:
         return msg_stack
 
     def perform_action(self, nickname, action, selection=False, o_id=False, u_id=False, sector=False):
+        '''Returns a report about performed changes or added units:
+        tuple(result_type, {changes}), result type can be new, change or False'''
+
+        performed_changes = [False, defaultdict(dict)]
+
         def make_changes(player, adress, changes):
             # decide which unit type is involved
             o_type = False
@@ -250,7 +256,7 @@ class MapWarfare:
                 try:
                     u = self.players[player]['groups'][o_id]['units'][u_id]
                 except KeyError:
-                    return False
+                    return
                 o_type = 'groups'
 
             else:
@@ -261,7 +267,11 @@ class MapWarfare:
                 elif o_id in self.players[player]['buildings'].keys():
                     u = self.players[player]['buildings'][o_id]
                 else:
-                    return False
+                    return
+
+            # Not nice ... but its necessary to add the player to the adress
+            # Should only be needed fro performed actions from now on
+            adress = tuple([player] + [l for l in adress])
 
             # Make changes (always do max_life first)
             if 'max_life' in changes.keys():
@@ -269,11 +279,15 @@ class MapWarfare:
 
                 new_change = round(random.normalvariate(
                     change, action['random'] * change), 0)
+
                 if (u['parameters']['max_life'] + new_change) <= 0:
                     del u
                     if o_type == 'groups' and len(self.players[nickname]['groups'][o_id]['units']) == 0:
                         del self.players[nickname]['groups'][o_id]
-                    return True
+
+                    performed_changes[1][adress].update({'max_life': new_change})
+                    return
+
                 else:
                     u['parameters']['max_life'] += new_change
                 del changes['max_life']
@@ -288,7 +302,10 @@ class MapWarfare:
                     del u
                     if o_type == 'groups' and len(self.players[nickname]['groups'][o_id]['units']) == 0:
                         del self.players[nickname]['groups'][o_id]
-                    return True
+
+                    performed_changes[1][adress].update({'max_shield': new_change})
+                    return
+
                 else:
                     u['parameters']['max_shield'] += new_change
                 del changes['max_shield']
@@ -302,19 +319,25 @@ class MapWarfare:
                     del u
                     if o_type == 'groups' and len(self.players[nickname]['groups'][o_id]['units']) == 0:
                         del self.players[nickname]['groups'][o_id]
-                    return True
+                    performed_changes[1][adress].update({'life': new_change})
+                    return
+
                 else:
                     max_life = u['parameters']['max_life']
                     if u['parameters']['life'] + new_change > max_life:
                         new_change = max_life - u['parameters']['life']
 
                     u['parameters']['life'] += new_change
+                    performed_changes[1][adress].update({'life': new_change})
 
                 del changes['life']
 
             for param, change in changes.items():
+                found_error = False
+
                 if param in ('actions', 'shop_transporter', 'shop_units', 'name'):
                     new_change = change
+
                 elif action['random'] > 0:
                     new_change = round(random.normalvariate(
                         change, action['random'] * change), 0)
@@ -337,12 +360,17 @@ class MapWarfare:
                 else:
                     try:
                         u['parameters'][param] += new_change
+
                     except KeyError, UnboundLocalError:
                         # E.g. if you try to change delay_walk of a building (does not have this parameter)
                         # or if the unit is already deleted
-                        pass
+                        found_error = True
 
-            return True
+                if not found_error:
+                    performed_changes[1][adress].update({param: new_change})
+                    performed_changes[0] = 'change'
+
+            return
 
         # Execute the action
         if action['type'] == 'new':
@@ -354,23 +382,23 @@ class MapWarfare:
 
             # All new actions possible. These should all be free...
             if action['level'] == 'groups':
-                self.new_group(
-                    player, action['parameters'], sector, costs=False)
+                self.new_group(player, action['parameters'], sector, costs=False)
 
             elif action['level'] == 'transporter':
                 self.new_transporter(player, action['parameters'], sector, costs=False)
 
             elif action['level'] == 'buildings':
-                self.new_building(
-                    player, action['parameters'], sector, costs=False)
+                self.new_building(player, action['parameters'], sector, costs=False)
 
-            return True
+            return ['new', {player: {action['level']: action['parameters']}}]
 
         elif action['type'] == 'change':
             if action['level'] == 'player':
+                collected_changes = {}
                 for param, change in action['changes'].items():
                     if param == 'name':
                         self.players[player]['name'] = change
+                        collected_changes['name'] = change
                     else:
                         if action['random'] > 0:
                             new_change = round(random.normalvariate(
@@ -379,7 +407,9 @@ class MapWarfare:
                             new_change = round(change, 0)
 
                         self.players[player][param] += new_change
-                return True
+                        collected_changes[param] = change
+
+                return ['change', {player: collected_changes}]
 
             elif action['target'] == 'self' and type(o_id) == int:
                 if type(u_id) == int:
@@ -387,7 +417,9 @@ class MapWarfare:
                 else:
                     adress = tuple([o_id])
                 make_changes(nickname, adress, copy.deepcopy(action['changes']))
-                return True
+
+                performed_changes[1] = dict(performed_changes[1])
+                return performed_changes
 
             elif action['target'] in ('own', 'enemy'):
                 # Collect all the involved adresses
@@ -433,9 +465,12 @@ class MapWarfare:
                 # Perform all the changes
                 for adress in adresses:
                     make_changes(player, adress, copy.deepcopy(action['changes']))
-                return True
 
-        return False
+                performed_changes[1] = dict(performed_changes[1])
+                return performed_changes
+
+        performed_changes[1] = dict(performed_changes[1])
+        return performed_changes
 
     def play_card(self, nickname, c_id, selection=False, sector=False):
         card = self.players[nickname]['cards'][c_id]
@@ -444,8 +479,9 @@ class MapWarfare:
             if not sector:
                 sector = self.players[nickname]['hq_sector']
 
-            success = self.perform_action(
+            result = self.perform_action(
                 nickname, action, selection, sector=sector)
+            print result
 
         msg = {'title': 'Card: ' + card['title'], 'message':
                'You played: {0}\n{1}'.format(card['title'], card['description']), 'popup': True}
@@ -488,6 +524,7 @@ class MapWarfare:
                     return {nickname: {'title': 'You are delayed...', 'message': 'No action', 'popup': False}}
 
         action = obj_act[action_name]
+
         if action['num_uses'] > 1:
             obj_act[action_name]['num_uses'] -= 1
         elif action['num_uses'] == -1:
@@ -499,12 +536,13 @@ class MapWarfare:
             self.players[nickname]['account'] -= action['price']
 
             # Perform all actions and return message stack
-            success = True
+            changes_stack = []
+
             for act in action['actions']:
-                su = self.perform_action(
+                res = self.perform_action(
                     nickname, act, selection, o_id, u_id, sector)
-                if not su:
-                    success = False
+
+                changes_stack.append(res)
 
             # apply delay in any case
             delay = action['delay']
@@ -527,16 +565,47 @@ class MapWarfare:
             if to_del:
                 del obj_act[action_name]
 
-            if success:
-                msg_stack = {nickname: {'title': 'Performed Unit Action', 'message': str(action),
-                                        'popup': False}}
+            msg_stack = self.create_action_messages(changes_stack)
 
-            else:
-                msg_stack = {nickname: {'title': 'Could Not Perform All requested Actions', 'message': str(action),
-                                        'popup': True}}
         else:
             msg_stack = {nickname: {'title': 'Not enough $$ for Action', 'message': str(action),
                                     'popup': True}}
+
+        return msg_stack
+
+    def create_action_messages(self, changes_stack):
+        '''defaultdicts, defaultdicts everywhere!'''
+
+        # Reorder all items
+        o = defaultdict(lambda: defaultdict(list))
+        for c_type, changes in changes_stack:
+            for adress, c in changes.items():
+                for param, value in c.items():
+                    o[adress][c_type].append(tuple([param, value]))
+
+        print o
+
+        player_msg = defaultdict(str)
+
+        for adress, c_dict in o.items():
+            #Group name
+            player_msg[adress[0]] += str(adress[1:]) + ': '
+            s = []
+            for c_type, changes in c_dict.items():
+                # Ignore the c_type for now
+                for p, v in changes:
+                    if p == 'actions':
+                        p = 'new actions:'
+                        v =  ', '.join(v.keys())
+
+                    s.append(' '.join([str(p), str(v)]))
+
+            player_msg[adress[0]] += ', '.join(s) 
+            player_msg[adress[0]] += '\n'
+
+        msg_stack = {}
+        for pl, msg in player_msg.items():
+            msg_stack[pl] = {'title': 'Performed Action', 'message': msg, 'popup': True}
 
         return msg_stack
 
@@ -1281,7 +1350,7 @@ class MapWarfare:
                 if units['enemies'] != '':
                     msg += '\nSurviving enemies:\n' + units['enemies']
                 else:
-                    msg += '\nYou have erradicated\nall opposing units!'
+                    msg += '\n\nYou have erradicated\nall opposing units!'
 
             try:
                 occ = count(dead[player])
@@ -1290,7 +1359,7 @@ class MapWarfare:
                     disp.append(str(num) + 'x ' + u_type)
                 player_dead = ', '.join(disp)
 
-                msg += '\nOur fallen heroes:\n' + player_dead
+                msg += '\n\nOur fallen heroes:\n' + player_dead
             except KeyError:
                 pass
 
@@ -1307,7 +1376,7 @@ class MapWarfare:
                 if units['starters'] != '':
                     msg += '\nSurviving enemies:\n' + units['starters']
                 else:
-                    msg += '\nYou have erradicated\nall opposing units!'
+                    msg += '\n\nYou have erradicated\nall opposing units!'
 
             try:
                 occ = count(dead[player])
@@ -1316,7 +1385,7 @@ class MapWarfare:
                     disp.append(str(num) + 'x ' + u_type)
                 player_dead = ', '.join(disp)
 
-                msg += '\nOur fallen heroes:\n' + player_dead
+                msg += '\n\nOur fallen heroes:\n' + player_dead
             except KeyError:
                 pass
 
