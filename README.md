@@ -30,5 +30,7 @@ MapWarfare
 Some more tips:
 
 Change the server speed on-the-go & use the Play/Pause button in the User Interface
+
 Toggle Fullscreen using F1 and use the number keys to directly select groups
+
 There is an enemy included ('punch_me'), so you have someone to battle...
