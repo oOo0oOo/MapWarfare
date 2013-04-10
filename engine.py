@@ -69,8 +69,8 @@ class MapWarfare:
         # Add extra units to start off...
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
-        self.new_group(nickname, [0, 0, 0, 0], hq_sector, 'Fighters', False)
-        self.new_player('asshole', 10)
+        self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
+        self.new_player('punch_me', 10)
 
         title = 'Hi {0}! TOGGLE FULLSCREEN USING F1...'.format(nickname)
         message = 'Welcome to the game!\n\nUSE F1 KEY TO ENTER FULLSCREEN MODE!\n\nUse number keys (0-9) to select groups...'.format(
