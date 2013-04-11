@@ -49,7 +49,7 @@ class MapWarfare:
             self.players[nickname]
             return False
         except KeyError:
-            if nickname in ('others', 'all'):
+            if nickname in ('others', 'all', '', ' '):
                 return False
 
         self.sectors[hq_sector] = nickname
@@ -583,25 +583,30 @@ class MapWarfare:
                 for param, value in c.items():
                     o[adress][c_type].append(tuple([param, value]))
 
-        print o
-
         player_msg = defaultdict(str)
 
         for adress, c_dict in o.items():
             #Group name
-            player_msg[adress[0]] += str(adress[1:]) + ': '
+            if type(adress) == str:
+                send_to = adress
+            elif type(adress) == tuple:
+                send_to = adress[0]
+
+            player_msg[send_to] += str(adress[1:]) + ': '
             s = []
             for c_type, changes in c_dict.items():
                 # Ignore the c_type for now
                 for p, v in changes:
                     if p == 'actions':
                         p = 'new actions:'
-                        v =  ', '.join(v.keys())
+                        v = ', '.join(v.keys())
+                    elif p in ('buildings', 'groups', 'transporter'):
+                        p = 'new ' + p + ':'
 
                     s.append(' '.join([str(p), str(v)]))
 
-            player_msg[adress[0]] += ', '.join(s) 
-            player_msg[adress[0]] += '\n'
+            player_msg[send_to] += ', '.join(s)
+            player_msg[send_to] += '\n'
 
         msg_stack = {}
         for pl, msg in player_msg.items():
