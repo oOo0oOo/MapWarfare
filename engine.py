@@ -589,10 +589,17 @@ class MapWarfare:
             #Group name
             if type(adress) == str:
                 send_to = adress
+                player_msg[send_to] += 'General'
             elif type(adress) == tuple:
                 send_to = adress[0]
 
-            player_msg[send_to] += str(adress[1:]) + ': '
+                player_msg[send_to] += 'Group {0}'.format(adress[1])
+                if len(adress) == 3:
+                    unit = self.players[send_to]['groups'][adress[1]]['units'][adress[2]]
+                    player_msg[send_to] += ', ' + unit['name']
+
+            player_msg[send_to] += ':\n'
+
             s = []
             for c_type, changes in c_dict.items():
                 # Ignore the c_type for now
@@ -606,7 +613,7 @@ class MapWarfare:
                     s.append(' '.join([str(p), str(v)]))
 
             player_msg[send_to] += ', '.join(s)
-            player_msg[send_to] += '\n'
+            player_msg[send_to] += '\n\n'
 
         msg_stack = {}
         for pl, msg in player_msg.items():
