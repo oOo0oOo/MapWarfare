@@ -132,10 +132,12 @@ class MainFrame(wx.Frame):
                 self.selected_ids = [o_id]
                 self.bottom_panel.update_selection(self.selected_ids)
                 self.icon_panel.shortcut_used(o_id)
+                self.focused_id = o_id
             else:
                 self.selected_ids = []
                 self.bottom_panel.update_selection(self.selected_ids)
                 self.icon_panel.shortcut_used(-1)
+                self.focused_id = -1
 
     def initiate_action(self, evt):
         if evt.action_type not in ('move_units', 'rename', 'buy_card', 'play_card'):
@@ -207,11 +209,12 @@ class MainFrame(wx.Frame):
 
         if ind in self.selected_ids:
             self.selected_ids.remove(ind)
-            self.bottom_panel.update_selection(self.selected_ids)
+
         else:
             self.selected_ids.append(ind)
-            self.bottom_panel.update_selection(self.selected_ids)
             self.focused_id = ind
+
+        self.bottom_panel.update_selection(self.selected_ids)
 
     def add_message(self, msg):
         self.message_board.add_message(msg)
@@ -2060,7 +2063,6 @@ class ObjSummary(wx.Panel):
             self.GetEventHandler().ProcessEvent(new_event)
 
     def update_parameters(self, new_obj):
-        print 'Updating', new_obj['name']
         try:
             wd = str(int(new_obj['parameters']['walk_dist']))
         except KeyError:
@@ -2463,6 +2465,8 @@ class Icon(wx.Panel):
         # Exponential decay: N(t) = N0 * exp(-1 * f * t)
         # Where f is decay constant used to scale decay
         # N0 is 100% delay bar...
+        # f=0.05 -> 2% at 60 delay, 10% at 40, 30% at 20
+        #   90% at 2 delay, 95% at 1 delay
 
         val = round(100 * exp(-0.05 * delay_max))
         self.delay_bar.SetValue(int(val))

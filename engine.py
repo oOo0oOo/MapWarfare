@@ -335,7 +335,8 @@ class MapWarfare:
             for param, change in changes.items():
                 found_error = False
 
-                if param in ('actions', 'shop_transporter', 'shop_units', 'name'):
+                # unaltered changes
+                if param in ('actions', 'shop_transporter', 'shop_units', 'name', 'shield_factor'):
                     new_change = change
 
                 elif action['random'] > 0:
@@ -344,6 +345,7 @@ class MapWarfare:
 
                 else:
                     new_change = round(change, 0)
+
 
                 if param == 'actions':
                     for name, parameters in new_change.items():
@@ -589,7 +591,7 @@ class MapWarfare:
             #Group name
             if type(adress) == str:
                 send_to = adress
-                player_msg[send_to] += 'General'
+                #player_msg[send_to] += 'General'
             elif type(adress) == tuple:
                 send_to = adress[0]
 
@@ -598,7 +600,7 @@ class MapWarfare:
                     unit = self.players[send_to]['groups'][adress[1]]['units'][adress[2]]
                     player_msg[send_to] += ', ' + unit['name']
 
-            player_msg[send_to] += ':\n'
+                player_msg[send_to] += ':\n'
 
             s = []
             for c_type, changes in c_dict.items():
@@ -607,8 +609,30 @@ class MapWarfare:
                     if p == 'actions':
                         p = 'new actions:'
                         v = ', '.join(v.keys())
+
+                    elif p == 'shop_units':
+                        p = 'Sells: '
+                        pp = self.game_parameters['unit_parameters']
+                        v = ', '.join([pp[r]['basic_parameters']['name'] for r in v])
+
+                    elif p == 'shop_transporter':
+                        p = 'Sells: '
+                        pp = self.game_parameters['transport_parameters']
+                        v = ', '.join([pp[r]['basic_parameters']['name'] for r in v])
+
                     elif p in ('buildings', 'groups', 'transporter'):
-                        p = 'new ' + p + ':'
+                        if p == 'groups':
+                            pp = self.game_parameters['unit_parameters']
+                        elif p == 'buildings':
+                            pp = self.game_parameters['building_parameters']
+                        elif p == 'transporter':
+                            pp = self.game_parameters['transport_parameters']
+
+                        p = 'New ' + p + ':'
+                        if type(v) == list:
+                            v = ', '.join([pp[k]['basic_parameters']['name'] for k in v])
+                        else:
+                            v = pp[v]['basic_parameters']['name']
 
                     s.append(' '.join([str(p), str(v)]))
 
