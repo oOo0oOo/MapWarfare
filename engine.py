@@ -290,6 +290,7 @@ class MapWarfare:
 
                 else:
                     u['parameters']['max_life'] += new_change
+                    performed_changes[1][adress].update({'max_life': new_change})
                 del changes['max_life']
 
             # Now Max_shield
@@ -298,16 +299,13 @@ class MapWarfare:
 
                 new_change = round(random.normalvariate(
                     change, action['random'] * change), 0)
-                if (u['parameters']['max_shield'] + new_change) <= 0:
-                    del u
-                    if o_type == 'groups' and len(self.players[nickname]['groups'][o_id]['units']) == 0:
-                        del self.players[nickname]['groups'][o_id]
 
-                    performed_changes[1][adress].update({'max_shield': new_change})
-                    return
+                if (u['parameters']['max_shield'] + new_change) < 0:
+                    new_change = -u['parameters']['max_shield']
 
-                else:
-                    u['parameters']['max_shield'] += new_change
+                u['parameters']['max_shield'] += new_change
+                performed_changes[1][adress].update({'max_shield': new_change})
+
                 del changes['max_shield']
 
             if 'life' in changes.keys():
@@ -346,7 +344,6 @@ class MapWarfare:
                 else:
                     new_change = round(change, 0)
 
-
                 if param == 'actions':
                     for name, parameters in new_change.items():
                         u['parameters']['actions'][name] = parameters
@@ -358,6 +355,7 @@ class MapWarfare:
                     max_shield = u['parameters']['max_shield']
                     if u['parameters']['shield'] + new_change > max_shield:
                         new_change = max_shield - u['parameters']['shield']
+                    u['parameters'][param] += new_change
 
                 else:
                     try:
@@ -588,10 +586,10 @@ class MapWarfare:
         player_msg = defaultdict(str)
 
         for adress, c_dict in o.items():
-            #Group name
+            # Group name
             if type(adress) == str:
                 send_to = adress
-                #player_msg[send_to] += 'General'
+                # player_msg[send_to] += 'General'
             elif type(adress) == tuple:
                 send_to = adress[0]
 

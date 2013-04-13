@@ -1815,7 +1815,7 @@ class Unit(wx.Panel):
             ('attack', '{0}-{1}'.format(int(u_p['attack_min']), int(u_p['attack_max']))),
             ('delay', str(int(new_obj['delay']))),
             ('life', '{0}/{1}'.format(int(u_p['life']), int(u_p['max_life']))),
-            ('shield', str(int(u_p['shield']))),
+            ('shield', '{0}/{1}'.format(int(u_p['shield']), int(u_p['max_shield']))),
             ('shoot_dist', str(int(u_p['shoot_dist']))),
             ('walk_dist', str(int(u_p['walk_dist']))),
             ('delay_shoot', str(int(u_p['delay_shoot']))),
@@ -1924,16 +1924,16 @@ class ObjSummary(wx.Panel):
         except KeyError:
             wd = '0'
 
+        o_p = obj['parameters']
         params = [(
-            'life', '{0}/{1}'.format(int(obj['parameters']['life']), int(obj['parameters']['max_life']))),
-            ('shield', str(int(obj['parameters']['shield']))),
-            ('shoot_dist', str(int(obj['parameters']['shoot_dist']))),
+            'life', '{0}/{1}'.format(int(o_p['life']), int(o_p['max_life']))),
+            ('shield', '{0}/{1}'.format(int(o_p['shield']), int(o_p['max_shield']))),
+            ('shoot_dist', str(int(o_p['shoot_dist']))),
             ('walk_dist', wd),
-            ('attack', '{0}-{1}'.format(int(obj['parameters'][
-                                            'attack_min']), int(obj['parameters']['attack_max']))),
+            ('attack', '{0}-{1}'.format(int(o_p['attack_min']), int(o_p['attack_max']))),
             ('delay', str(int(obj['delay']))),
             ('capacity', '{0}/{1}'.format(
-             len(current_in), int(obj['parameters']['capacity'])))
+             len(current_in), int(o_p['capacity'])))
         ]
 
         self.params_sizer = wx.FlexGridSizer(3, 5)
@@ -2102,15 +2102,15 @@ class ObjSummary(wx.Panel):
         except KeyError:
             wd = '0'
 
+        o_p = new_obj['parameters']
         params = [(
-            'life', '{0}/{1}'.format(int(new_obj['parameters']['life']), int(new_obj['parameters']['max_life']))),
-            ('shield', str(int(new_obj['parameters']['shield']))),
-            ('shoot_dist', str(int(new_obj['parameters']['shoot_dist']))),
+            'life', '{0}/{1}'.format(int(o_p['life']), int(o_p['max_life']))),
+            ('shield', '{0}/{1}'.format(int(o_p['shield']), int(o_p['max_shield']))),
+            ('shoot_dist', str(int(o_p['shoot_dist']))),
             ('walk_dist', wd),
-            ('attack', '{0}-{1}'.format(int(new_obj['parameters'][
-                                            'attack_min']), int(new_obj['parameters']['attack_max']))),
+            ('attack', '{0}-{1}'.format(int(o_p['attack_min']), int(o_p['attack_max']))),
             ('delay', str(int(new_obj['delay']))),
-            ('capacity', '{0}/{1}'.format(len(new_obj['current']), int(new_obj['parameters']['capacity'])))
+            ('capacity', '{0}/{1}'.format(len(new_obj['current']), int(o_p['capacity'])))
         ]
 
         for param, value in params:
