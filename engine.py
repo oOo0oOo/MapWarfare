@@ -475,23 +475,20 @@ class MapWarfare:
     def play_card(self, nickname, c_id, selection=False, sector=False):
         card = self.players[nickname]['cards'][c_id]
         # perform all actions on card
+        changes_stack = []
         for action in card['actions']:
             if not sector:
                 sector = self.players[nickname]['hq_sector']
 
             result = self.perform_action(
                 nickname, action, selection, sector=sector)
-            print result
+            changes_stack.append(result)
 
-        msg = {'title': 'Card: ' + card['title'], 'message':
-               'You played: {0}\n{1}'.format(card['title'], card['description']), 'popup': True}
-        msg_others = {'title': '{0} played: {1}'.format(nickname, card['title']),
-                      'message': '{0}\n{1}'.format(card['title'], card['description']),
-                      'popup': False}
+        msg_stack = self.create_action_messages(changes_stack, 'Card: ' + card['title'])
 
         del self.players[nickname]['cards'][c_id]
 
-        return {nickname: msg, 'others': msg_others}
+        return msg_stack
 
     def perform_unit_action(self, nickname, action_name, o_id, u_id=False, selection=False, sector=False):
         '''Performs a specified unit action, returns a msg_stack or empty message  stack {}'''
@@ -568,12 +565,12 @@ class MapWarfare:
             msg_stack = self.create_action_messages(changes_stack)
 
         else:
-            msg_stack = {nickname: {'title': 'Not enough $$ for Action', 'message': str(action),
+            msg_stack = {nickname: {'title': 'Not enough $$ for Action', 'message': 'You poor bastard! Dont spend all your money on beer...',
                                     'popup': True}}
 
         return msg_stack
 
-    def create_action_messages(self, changes_stack):
+    def create_action_messages(self, changes_stack, title = 'Performed Action!'):
         '''defaultdicts, defaultdicts everywhere!'''
 
         # Reorder all items
@@ -639,7 +636,7 @@ class MapWarfare:
 
         msg_stack = {}
         for pl, msg in player_msg.items():
-            msg_stack[pl] = {'title': 'Performed Action', 'message': msg, 'popup': True}
+            msg_stack[pl] = {'title': title, 'message': msg, 'popup': True}
 
         return msg_stack
 
