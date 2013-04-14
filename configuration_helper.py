@@ -50,10 +50,7 @@ class ConfigurationHelper(wx.Dialog):
             'card_parameters': {}}
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        self.main_sizer.Add(wx.StaticText(self.scroll_panel, -1,
-                            'Will help you to create a custom game...'))
-        self.main_sizer.AddSpacer(25)
+        self.main_sizer.AddSpacer(10)
 
         self.card_btns = {}
         self.unit_btns = {}

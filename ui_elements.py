@@ -380,10 +380,11 @@ class Header(wx.Panel):
             elif param == 'sectors':
                 disp = ', '.join(map(lambda x: str(x), value))
                 disp += '  (T: {})'.format(len(value))
-
                 self.displayed[param].SetLabel(disp)
+                
             elif param == 'account':
                 self.displayed[param].SetLabel(str(int(value)) + ' $')
+
             else:
                 self.displayed[param].SetLabel(str(value))
 
