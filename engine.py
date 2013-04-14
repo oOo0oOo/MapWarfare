@@ -20,7 +20,7 @@ def generate_random_name():
 
     name = random.choice(syllables['part1'])
 
-    if random.random() > 0.85:
+    if random.random() > 0.7:
         name += random.choice(syllables['part2'])
 
     name += random.choice(syllables['part3'])
@@ -107,7 +107,7 @@ class MapWarfare:
             i = 0
         return i
 
-    def new_group(self, nickname, units, sector, group_name='', costs=True):
+    def new_group(self, nickname, units, sector, group_name='', costs=True, delay=0):
         if costs:
             # All unit prices
             unit_prices = {}
@@ -139,7 +139,7 @@ class MapWarfare:
             names += name + ', '
             new_unit = {
                 'name': name, 'parameters': params, 'age': 0, 'total_damage': 0,
-                'protected': False, 'delay': 0, 'building': -1
+                'protected': False, 'delay': delay, 'building': -1
             }
 
             self.players[nickname]['groups'][new_group_id][
@@ -159,7 +159,7 @@ class MapWarfare:
                                 'popup': False}}
         return msg_stack
 
-    def new_transporter(self, nickname, transporter_type, sector, transporter_name='', costs=True):
+    def new_transporter(self, nickname, transporter_type, sector, transporter_name='', costs=True, delay=0):
 
         params = copy.deepcopy(self.game_parameters['transport_parameters'][
                                transporter_type]['basic_parameters'])
@@ -173,7 +173,7 @@ class MapWarfare:
         new_id = self.get_id(nickname)
 
         new_transporter = {'sector': sector, 'name': transporter_name, 'parameters': params, 'current': [], 'age': 0,
-                           'delay': 0, 'total_damage': 0, 'protected': False}
+                           'delay': delay, 'total_damage': 0, 'protected': False}
 
         self.players[nickname]['transporter'][new_id] = new_transporter
 
@@ -182,7 +182,7 @@ class MapWarfare:
             new_id, params['price'])
         return {nickname: {'title': title, 'message': message, 'popup': False}}
 
-    def new_building(self, nickname, building_type, sector, name='', costs=True):
+    def new_building(self, nickname, building_type, sector, name='', costs=True, delay=0):
 
         params = copy.deepcopy(self.game_parameters['building_parameters'][
                                building_type]['basic_parameters'])
@@ -196,7 +196,7 @@ class MapWarfare:
         new_id = self.get_id(nickname)
 
         new_building = {'sector': sector, 'name': name, 'parameters': params, 'current': [], 'age': 0,
-                        'delay': 0, 'total_damage': 0}
+                        'delay': delay, 'total_damage': 0}
         self.players[nickname]['buildings'][new_id] = new_building
 
         title = 'New Building: ID ' + str(new_id)
@@ -388,8 +388,8 @@ class MapWarfare:
                 self.new_transporter(player, action['parameters'], sector, costs=False)
 
             elif action['level'] == 'buildings':
-                self.new_building(player, action['parameters'], sector, costs=False)
-
+                # Buildings get 20 delay. I know it's an inconsistent rule...
+                self.new_building(player, action['parameters'], sector, costs=False, delay=20)
             return ['new', {player: {action['level']: action['parameters']}}]
 
         elif action['type'] == 'change':
@@ -484,7 +484,7 @@ class MapWarfare:
                 nickname, action, selection, sector=sector)
             changes_stack.append(result)
 
-        msg_stack = self.create_action_messages(changes_stack, 'Card: ' + card['title'])
+        msg_stack = self.create_action_messages(changes_stack, 'Played card: ' + card['title'])
 
         del self.players[nickname]['cards'][c_id]
 
@@ -562,7 +562,7 @@ class MapWarfare:
             if to_del:
                 del obj_act[action_name]
 
-            msg_stack = self.create_action_messages(changes_stack)
+            msg_stack = self.create_action_messages(changes_stack, 'Performed Unit Action (ID: {})!'.format(o_id))
 
         else:
             msg_stack = {
@@ -574,7 +574,7 @@ class MapWarfare:
 
     def create_action_messages(self, changes_stack, title='Performed Action!'):
         '''defaultdicts, defaultdicts everywhere!'''
-
+        
         if not changes_stack:
             return {}
 
@@ -588,6 +588,7 @@ class MapWarfare:
         player_msg = defaultdict(str)
 
         for adress, c_dict in o.items():
+
             # Group name
             if type(adress) == str:
                 send_to = adress
