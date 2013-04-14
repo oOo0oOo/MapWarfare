@@ -565,13 +565,18 @@ class MapWarfare:
             msg_stack = self.create_action_messages(changes_stack)
 
         else:
-            msg_stack = {nickname: {'title': 'Not enough $$ for Action', 'message': 'You poor bastard! Dont spend all your money on beer...',
-                                    'popup': True}}
+            msg_stack = {
+                nickname: {
+                    'title': 'Not enough $$ for Action', 'message': 'You poor bastard! Dont spend all your money on beer...',
+                    'popup': True}}
 
         return msg_stack
 
-    def create_action_messages(self, changes_stack, title = 'Performed Action!'):
+    def create_action_messages(self, changes_stack, title='Performed Action!'):
         '''defaultdicts, defaultdicts everywhere!'''
+
+        if not changes_stack:
+            return {}
 
         # Reorder all items
         o = defaultdict(lambda: defaultdict(list))
@@ -979,6 +984,8 @@ class MapWarfare:
         '''This function performs all the updates initiated by a tick.'''
         # give constant money
         # give money for sectors
+        changes_stack = []
+
         for nickname in self.players.keys():
             eng_par = self.game_parameters['engine_parameters']
 
@@ -1042,8 +1049,8 @@ class MapWarfare:
                         if unit['age'] == border:
                             # perform the upgrades
                             for action in actions:
-                                self.perform_action(nickname, action,
-                                                    o_id=g_id, u_id=u_id, sector=group['sector'])
+                                changes_stack.append(self.perform_action(nickname, action,
+                                                                         o_id=g_id, u_id=u_id, sector=group['sector']))
 
             for o_type in ('transporter', 'buildings'):
                 for o_id, obj in self.players[nickname][o_type].items():
@@ -1051,8 +1058,8 @@ class MapWarfare:
                         if obj['age'] == border:
                             # perform the upgrades
                             for action in actions:
-                                self.perform_action(nickname,
-                                                    action, o_id=o_id, sector=obj['sector'])
+                                changes_stack.append(self.perform_action(nickname,
+                                                                         action, o_id=o_id, sector=obj['sector']))
 
             # Remove all groups with no units left
             for g_id, group in self.players[nickname]['groups'].items():
@@ -1061,7 +1068,7 @@ class MapWarfare:
 
         self.ticks += 1
 
-        return {'all': {'title': 'Tick Tock', 'message': 'A new tick has passed...', 'popup': False}}
+        return self.create_action_messages(changes_stack, 'Time dependent upgrade!')
 
     def fight(self, starters, enemies, distance):
 
@@ -1259,6 +1266,7 @@ class MapWarfare:
                         break
 
                 if executed:
+
                     if selected_adress[2] == 'groups':
                         ad = selected_adress
                         g_id, u_id = ad[3]
