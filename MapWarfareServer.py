@@ -152,8 +152,6 @@ class MapWarfareServer(Server):
 
         self.game_paused = True
 
-        print 'Map Warfare Server started!'
-
         # Use configuration helper to get game parameters
         game_parameters = self.configuration_helper()
 
@@ -435,13 +433,16 @@ class MapWarfareServer(Server):
         msg_stack = self.game.on_tick()
         for player in self.players:
             self.update_player_ui(player)
-            
+
         self.send_msg_stack(msg_stack)
 
 
     def Launch(self):
         '''The server loop'''
+
+        print 'Map Warfare Server started!'
         print 'Server Adress:', socket.gethostbyname(socket.gethostname()), ', Port:', self.addr[1]
+        
         while True:
             # Perform all requests
             self.Pump()
