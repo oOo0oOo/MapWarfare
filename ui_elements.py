@@ -376,8 +376,12 @@ class Header(wx.Panel):
 
                 self.victory.SetValue(val)
                 self.victory.Refresh()
+
             elif param == 'sectors':
-                self.displayed[param].SetLabel(', '.join(map(lambda x: str(x), value)))
+                disp = ', '.join(map(lambda x: str(x), value))
+                disp += '  (T: {})'.format(len(value))
+
+                self.displayed[param].SetLabel(disp)
             elif param == 'account':
                 self.displayed[param].SetLabel(str(int(value)) + ' $')
             else:
