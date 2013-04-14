@@ -39,11 +39,11 @@ class MainFrame(wx.Frame):
         colors[2] = '#046380'  # Used as background for the summary panel (darker blue)
         colors[3] = '#1a232d'  # Most text (except small)
 
-        font_family = wx.FONTFAMILY_SWISS
-        fonts['parameter'] = wx.Font(10, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        fonts['small'] = wx.Font(8, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        fonts['large_number'] = wx.Font(25, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        fonts['title'] = wx.Font(12, font_family, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        font_family = wx.SWISS
+        fonts['parameter'] = wx.Font(10, font_family, wx.NORMAL, wx.BOLD)
+        fonts['small'] = wx.Font(8, font_family, wx.NORMAL, wx.NORMAL)
+        fonts['large_number'] = wx.Font(25, font_family, wx.NORMAL, wx.NORMAL)
+        fonts['title'] = wx.Font(12, font_family, wx.NORMAL, wx.NORMAL)
 
         self.connection = connection
         self.all_graphics = all_graphics
@@ -2563,8 +2563,7 @@ class MessageBoard(wx.Panel):
     def message_click(self, e, message_id):
         # Display clicked message in new popup (running in a seperate thread
         msg = self.messages[message_id]
-        wx.MessageBox(
-            msg['message'], msg['title'], wx.OK | wx.ICON_INFORMATION)
+        wx.MessageBox(msg['message'], msg['title'], wx.OK | wx.ICON_INFORMATION)
 
 
 class PlayCard(wx.Dialog):

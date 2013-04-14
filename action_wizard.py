@@ -22,6 +22,7 @@ class DistancePage(wiz.WizardPageSimple):
         self.sizer.Add(self.distance)
 
     def get_value(self):
+        # I know; WTF...
         return {'distance': int(round(float(self.distance.GetValue())))}
 
 
@@ -271,11 +272,11 @@ class ActionWizard(wiz.Wizard):
 
             for action in card['actions']:
                 if action['target'] == 'enemy':
-                    if action['level'] == 'id':
+                    if action['level'] == 'id' and action['num_units'] != 'all':
                         has_enemy_ids = True
                     has_enemy_player = True
                 elif action['target'] == 'own':
-                    if action['level'] == 'id':
+                    if action['level'] == 'id' and action['num_units'] != 'all':
                         has_own_ids = True
 
             if has_enemy_player:
@@ -336,11 +337,11 @@ class ActionWizard(wiz.Wizard):
 
             for action in actions:
                 if action['target'] == 'enemy':
-                    if action['level'] == 'id':
+                    if action['level'] == 'id' and action['num_units'] != 'all':
                         has_enemy_ids = True
                     has_enemy_player = True
                 elif action['target'] == 'own':
-                    if action['level'] == 'id':
+                    if action['level'] == 'id' and action['num_units'] != 'all':
                         has_own_ids = True
 
             if has_enemy_player:
