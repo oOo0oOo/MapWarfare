@@ -432,9 +432,12 @@ class MapWarfareServer(Server):
                          'play': status, 'cards': False})
 
     def on_tick(self):
-        self.game.on_tick()
+        msg_stack = self.game.on_tick()
         for player in self.players:
             self.update_player_ui(player)
+            
+        self.send_msg_stack(msg_stack)
+
 
     def Launch(self):
         '''The server loop'''
