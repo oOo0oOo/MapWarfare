@@ -325,8 +325,7 @@ class Header(wx.Panel):
         # Display victory difference
         self.victory = pg.PyGauge(self, -1, size=(200, 20), style=wx.GA_HORIZONTAL)
         self.victory.SetBackgroundColour(colors[1])
-        self.victory.SetBorderColor(colors[0])
-        self.victory.SetBarColor(colors[2])
+        self.victory.SetBorderColour(colors[0])
 
         self.play_button = buttons.GenBitmapToggleButton(
             self, -1, self.all_graphics['button_play'],
@@ -371,17 +370,22 @@ class Header(wx.Panel):
 
                 if val < 0:
                     val = 0
+                    self.victory.SetBackgroundColour(wx.RED)
                 if val > 100:
                     val = 100
+                    self.victory.SetBarColour(wx.GREEN)
+                else:
+                    self.victory.SetBarColour(colors[2])
+                    self.victory.SetBackgroundColour(colors[1])
 
                 self.victory.SetValue(val)
                 self.victory.Refresh()
 
             elif param == 'sectors':
                 disp = ', '.join(map(lambda x: str(x), value))
-                disp += '  (T: {})'.format(len(value))
+                disp += '  (#: {})'.format(len(value))
                 self.displayed[param].SetLabel(disp)
-                
+
             elif param == 'account':
                 self.displayed[param].SetLabel(str(int(value)) + ' $')
 
@@ -2355,8 +2359,8 @@ class Icon(wx.Panel):
 
         self.delay_bar = pg.PyGauge(self, -1, size=(80, 10), style=wx.GA_HORIZONTAL)
         self.delay_bar.SetBackgroundColour(colors[1])
-        self.delay_bar.SetBorderColor(colors[0])
-        self.delay_bar.SetBarColor(colors[2])
+        self.delay_bar.SetBorderColour(colors[0])
+        self.delay_bar.SetBarColour(colors[2])
 
         self.name = wx.StaticText(self, wx.ID_ANY, '')
         self.number = wx.StaticText(self, wx.ID_ANY, '')
