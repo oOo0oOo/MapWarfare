@@ -27,6 +27,14 @@ class MainFrame(wx.Frame):
     def __init__(self, parent, title, all_graphics, connection):
         wx.Frame.__init__(self, parent, title=title, size=(1366, 768))
 
+        # Define the shortcut table
+        # Default is id 1 for key 1, id 2 for key 2 etc
+        self.shortcuts = {}
+        for i in range(10):
+            self.shortcuts[i] = [i]
+
+        #self.shortcuts[0] = []
+
         # Define some global fonts and colors
         # Done at this point because wx.Font() requires running wx.App
         global colors
@@ -85,13 +93,15 @@ class MainFrame(wx.Frame):
         self.Bind(EVT_INITIATE_ACTION, self.initiate_action)
 
         # Set up keyboard shortcuts (0-9) select number
+        # CTRL + nuber saves current state as shortcut
         shortcuts = []
         ids = {}
         for i in range(10):
-            ids[i] = wx.NewId()
-            shortcuts.append((wx.ACCEL_NORMAL, ord(str(i)), ids[i]))
-            self.Bind(wx.EVT_MENU, lambda evt, i=i:
-                      self.on_shortcut(evt, i), id=ids[i])
+            id1, id2 = wx.NewId(), wx.NewId()
+            shortcuts.append((wx.ACCEL_NORMAL, ord(str(i)), id1))
+            shortcuts.append((wx.ACCEL_CTRL, ord(str(i)), id2))
+            self.Bind(wx.EVT_MENU, lambda evt, i=i: self.on_shortcut(evt, i), id=id1)
+            self.Bind(wx.EVT_MENU, lambda evt, i=i: self.set_shortcut(evt, i), id=id2)
 
         # key F1 triggers fullscreen
         ind = wx.NewId()
@@ -125,19 +135,27 @@ class MainFrame(wx.Frame):
     def on_fullscreen(self, evt):
         self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
 
-    def on_shortcut(self, evt, o_id):
+    def on_shortcut(self, evt, key_press):
         g_o = self.game_obj
-        if o_id in g_o['groups'].keys() + g_o['transporter'].keys() + g_o['buildings'].keys():
-            if self.selected_ids != [o_id]:
-                self.selected_ids = [o_id]
-                self.bottom_panel.update_selection(self.selected_ids)
-                self.icon_panel.shortcut_used(o_id)
-                self.focused_id = o_id
-            else:
-                self.selected_ids = []
-                self.bottom_panel.update_selection(self.selected_ids)
-                self.icon_panel.shortcut_used(-1)
-                self.focused_id = -1
+        if self.selected_ids != self.shortcuts[key_press]:
+            self.selected_ids = []
+            for o_id in self.shortcuts[key_press]:
+                if o_id in g_o['groups'].keys() + g_o['transporter'].keys() + g_o['buildings'].keys():
+                    self.selected_ids.append(o_id)
+        else:
+            self.selected_ids = []
+            
+        self.bottom_panel.update_selection(self.selected_ids)
+        self.icon_panel.shortcut_used(self.selected_ids)
+
+        if self.selected_ids:
+            self.focused_id = self.selected_ids[0]
+        else:
+            self.focused_id = -1
+
+    def set_shortcut(self, evt, key_press):
+        self.shortcuts[key_press] = self.selected_ids
+
 
     def initiate_action(self, evt):
         if evt.action_type not in ('move_units', 'rename', 'buy_card', 'play_card'):
@@ -2305,9 +2323,9 @@ class IconPanel(scrolled.ScrolledPanel):
             else:
                 self.FitInside()
 
-    def shortcut_used(self, o_id):
+    def shortcut_used(self, ids):
         for id in self.displayed.keys():
-            if id == o_id:
+            if id in ids:
                 self.displayed[id].select_btn.SetValue(True)
             else:
                 self.displayed[id].select_btn.SetValue(False)
