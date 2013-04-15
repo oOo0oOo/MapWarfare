@@ -1706,7 +1706,7 @@ class Unit(wx.Panel):
         # display all parameters
         u_p = self.unit['parameters']
         params = ['attack', 'delay', 'life', 'shield', 'shoot_dist',
-                  'walk_dist', 'delay_shoot', 'delay_walk']
+                  'walk_dist', 'delay_shoot', 'delay_walk', 'age', 'total_damage']
 
         self.params_sizer = wx.FlexGridSizer(3, 5)
         self.params_images = {}
@@ -1715,7 +1715,11 @@ class Unit(wx.Panel):
         spacer = True
 
         for param in params:
-            image = 'icon_' + param
+            if param not in ('age', 'total_damage'):
+                image = 'icon_' + param
+            else:
+                image = 'unknown_icon'
+
             self.params_images[image] = wx.StaticBitmap(
                 self, wx.ID_ANY, all_graphics[image])
             self.params_value[param] = wx.StaticText(self, -1, '')
@@ -1828,7 +1832,9 @@ class Unit(wx.Panel):
             ('shoot_dist', str(int(u_p['shoot_dist']))),
             ('walk_dist', str(int(u_p['walk_dist']))),
             ('delay_shoot', str(int(u_p['delay_shoot']))),
-            ('delay_walk', str(int(u_p['delay_walk'])))
+            ('delay_walk', str(int(u_p['delay_walk']))),
+            ('age', str(new_obj['age'])),
+            ('total_damage', str(new_obj['total_damage']))
         ]
 
         for param, value in params:

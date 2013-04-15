@@ -898,7 +898,7 @@ class DetailPage(wx.Dialog):
         self.main_sizer.Add(self.name_sizer)
         self.main_sizer.AddSpacer(8)
 
-        self.detail_panel = scrolled.ScrolledPanel(self, -1, size=(700, 200))
+        self.detail_panel = scrolled.ScrolledPanel(self, -1, size=(700, 100))
         self.detail_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.detail_panel.SetSizer(self.detail_sizer)
         self.detail_panel.SetupScrolling(True, True)
