@@ -1877,29 +1877,36 @@ class Unit(wx.Panel):
 
         message = '\n'.join(params)
 
-        self.tip = STT.SuperToolTip(message)
+        if not hasattr(self, "tip"):            
+            self.tip = STT.SuperToolTip(message)
+            
+            self.tip.SetTarget(self.unit_bitmap)
 
-        self.tip.SetTarget(self.unit_bitmap)
+            # self.tip.SetBodyImage(bodyImage)
+            self.tip.SetHeader('Extended View')
+            # self.tip.SetHeaderBitmap(headerBmp)
 
-        # self.tip.SetBodyImage(bodyImage)
-        self.tip.SetHeader('Extended View')
-        # self.tip.SetHeaderBitmap(headerBmp)
+            self.tip.SetFooter(new_obj['name'])
+            # self.tip.SetFooterBitmap(footerBmp)
 
-        self.tip.SetFooter(new_obj['name'])
-        # self.tip.SetFooterBitmap(footerBmp)
+            self.tip.SetDrawHeaderLine(True)
+            self.tip.SetDrawFooterLine(True)
 
-        self.tip.SetDrawHeaderLine(True)
-        self.tip.SetDrawFooterLine(True)
+            self.tip.SetDropShadow(False)
+            self.tip.SetUseFade(True)
+            self.tip.SetEndDelay(15)
+            self.tip.SetStartDelay(0)
 
-        self.tip.SetDropShadow(False)
-        self.tip.SetUseFade(False)
-        self.tip.SetEndDelay(15)
+            # Set Position
+            self.tip.SetPosition(wx.GetMousePosition())
 
-        self.tip.ApplyStyle('Pale Green')
+            self.tip.ApplyStyle('Pale Green')
+            # self.tip.SetTopGradientColour(topColour)
+            # self.tip.SetMiddleGradientColour(middleColour)
+            # self.tip.SetBottomGradientColour(bottomColour)
 
-        # self.tip.SetTopGradientColour(topColour)
-        # self.tip.SetMiddleGradientColour(middleColour)
-        # self.tip.SetBottomGradientColour(bottomColour)
+        else:
+            self.tip.SetMessage(message)
 
     def on_unit_action(self, evt):
         action_name = evt.GetEventObject().GetName()
