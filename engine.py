@@ -73,9 +73,16 @@ class MapWarfare:
         self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
         self.new_player('punch_me', 10)
 
-        title = 'Hi {0}! TOGGLE FULLSCREEN USING F1...'.format(nickname)
-        message = 'Welcome to the game!\n\nUSE F1 KEY TO ENTER FULLSCREEN MODE!\n\nUse number keys (0-9) to select groups...'.format(
-            self.players[nickname]['account'])
+        title = 'Hi {0}!'.format(nickname)
+        message_parts = ['F1 to F10 are shortcuts to the actions']
+        message_parts.append('F1: Move, F2: Fight, ...')
+        message_parts.append('\nF11 toggles fullscreen')
+        message_parts.append('\nUse number keys (0-9) to select groups')
+        message_parts.append('& use CTRL + (0-9) to save current selection!')
+        message_parts.append('\nGOOD LUCK COMMANDER!!')
+
+        message = '\n'.join(message_parts)
+
         msg_stack = {
             nickname: {'title': title, 'message': message, 'popup': True},
             'others': {'title': nickname + ' joined the game!', 'message': 'Be nice...', 'popup': False}}
@@ -574,7 +581,7 @@ class MapWarfare:
 
     def create_action_messages(self, changes_stack, title='Performed Action!'):
         '''defaultdicts, defaultdicts everywhere!'''
-        
+
         if not changes_stack:
             return {}
 
