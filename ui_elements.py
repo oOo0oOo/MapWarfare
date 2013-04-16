@@ -60,8 +60,6 @@ class MainFrame(wx.Frame):
         self.cards = {}
         self.sectors = {}
 
-        self.focused_id = -1
-
         self.game_parameters = {}
         self.selected_ids = []
         self.enemy_groups = {}
@@ -148,21 +146,13 @@ class MainFrame(wx.Frame):
         self.bottom_panel.update_selection(self.selected_ids)
         self.icon_panel.shortcut_used(self.selected_ids)
 
-        if self.selected_ids:
-            self.focused_id = self.selected_ids[0]
-        else:
-            self.focused_id = -1
-
     def set_shortcut(self, evt, key_press):
         self.shortcuts[key_press] = self.selected_ids
 
 
     def initiate_action(self, evt):
         if evt.action_type not in ('move_units', 'rename', 'buy_card', 'play_card'):
-            if evt.action_type == 'unit_action':
-                ids = [self.focused_id]
-            else:
-                ids = self.selected_ids
+            ids = self.selected_ids
 
             # Call action wizard
             wiz = action_wizard.ActionWizard(
@@ -170,6 +160,7 @@ class MainFrame(wx.Frame):
                 self.game_obj['groups'], self.game_obj[
                     'transporter'], self.game_obj['buildings'],
                 self.cards, self.connection)
+            
         elif evt.action_type == 'move_units':
             selected_groups = {}
             g_keys = self.game_obj['groups'].keys()
@@ -227,10 +218,8 @@ class MainFrame(wx.Frame):
 
         if ind in self.selected_ids:
             self.selected_ids.remove(ind)
-
         else:
             self.selected_ids.append(ind)
-            self.focused_id = ind
 
         self.bottom_panel.update_selection(self.selected_ids)
 
