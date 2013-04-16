@@ -1867,12 +1867,12 @@ class Unit(wx.Panel):
         # create the main message
         u_p = new_obj['parameters']
         params = [
-            'Shoot Distance: \t' + str(int(u_p['shoot_dist'])),
-            'Walk Distance: \t' + str(int(u_p['walk_dist'])),
-            'Shoot Delay: \t' + str(int(u_p['delay_shoot'])),
-            'Walk Delay:  \t' + str(int(u_p['delay_walk'])),
-            'Age:        \t' + str(new_obj['age']),
-            'Total Damage: \t' + str(new_obj['total_damage'])
+            'Shoot Distance:   ' + str(int(u_p['shoot_dist'])),
+            'Walk Distance:    ' + str(int(u_p['walk_dist'])),
+            'Shoot Delay:      ' + str(int(u_p['delay_shoot'])),
+            'Walk Delay:       ' + str(int(u_p['delay_walk'])),
+            'Age:              ' + str(new_obj['age']),
+            'Total Damage:     ' + str(new_obj['total_damage'])
         ]
 
         message = '\n'.join(params)
@@ -1883,24 +1883,27 @@ class Unit(wx.Panel):
             self.tip.SetTarget(self.unit_bitmap)
 
             # self.tip.SetBodyImage(bodyImage)
-            self.tip.SetHeader('Extended View')
+            self.tip.SetHeader('Extended View: ' + new_obj['name'])
             # self.tip.SetHeaderBitmap(headerBmp)
 
-            self.tip.SetFooter(new_obj['name'])
+            #self.tip.SetFooter()
             # self.tip.SetFooterBitmap(footerBmp)
 
             self.tip.SetDrawHeaderLine(True)
-            self.tip.SetDrawFooterLine(True)
+            self.tip.SetDrawFooterLine(False)
+
 
             self.tip.SetDropShadow(False)
-            self.tip.SetUseFade(True)
-            self.tip.SetEndDelay(15)
-            self.tip.SetStartDelay(0)
+            self.tip.SetUseFade(False)
 
-            self.tip.ApplyStyle('Pale Green')
-            # self.tip.SetTopGradientColour(topColour)
-            # self.tip.SetMiddleGradientColour(middleColour)
-            # self.tip.SetBottomGradientColour(bottomColour)
+            self.tip.SetStartDelay(1)
+            self.tip.SetEndDelay(10)
+
+            #self.tip.ApplyStyle('Blue Inverted')
+            self.tip.SetTopGradientColour('#23bdea')
+            self.tip.SetMiddleGradientColour(colors[1])
+            self.tip.SetBottomGradientColour('#118cb0')
+            self.tip.SetTextColor(colors[3])
 
         else:
             self.tip.SetMessage(message)
