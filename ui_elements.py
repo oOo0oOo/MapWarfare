@@ -1879,7 +1879,7 @@ class Unit(wx.Panel):
 
         if not hasattr(self, "tip"):            
             self.tip = STT.SuperToolTip(message)
-            
+
             self.tip.SetTarget(self.unit_bitmap)
 
             # self.tip.SetBodyImage(bodyImage)
@@ -1896,9 +1896,6 @@ class Unit(wx.Panel):
             self.tip.SetUseFade(True)
             self.tip.SetEndDelay(15)
             self.tip.SetStartDelay(0)
-
-            # Set Position
-            self.tip.SetPosition(wx.GetMousePosition())
 
             self.tip.ApplyStyle('Pale Green')
             # self.tip.SetTopGradientColour(topColour)
