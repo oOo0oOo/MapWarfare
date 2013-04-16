@@ -59,6 +59,13 @@ class MainFrame(wx.Frame):
         fonts['large_number'] = wx.Font(25, font_family, wx.NORMAL, wx.NORMAL)
         fonts['title'] = wx.Font(12, font_family, wx.NORMAL, wx.NORMAL)
 
+        # Action mapping for F keys shortcuts
+        self.action_mapping = {1: 'move', 2: 'fight',
+                               3: 'load_transporter', 4: 'unload_group',
+                               5: 'protect', 6: 'unprotect',
+                               7: 'enter_building', 8: 'exit_building',
+                               9: 'move_units', 10: 'rename'}
+
         self.connection = connection
         self.all_graphics = all_graphics
 
@@ -104,13 +111,16 @@ class MainFrame(wx.Frame):
             id1, id2 = wx.NewId(), wx.NewId()
             shortcuts.append((wx.ACCEL_NORMAL, ord(str(i)), id1))
             shortcuts.append((wx.ACCEL_CTRL, ord(str(i)), id2))
-            self.Bind(wx.EVT_MENU, lambda evt, i=i: self.on_shortcut(evt, i), id=id1)
+            self.Bind(wx.EVT_MENU, lambda evt, i=i: self.on_shortcut_id(evt, i), id=id1)
             self.Bind(wx.EVT_MENU, lambda evt, i=i: self.set_shortcut(evt, i), id=id2)
 
-        # key F1 triggers fullscreen
-        ind = wx.NewId()
-        shortcuts.append((wx.ACCEL_NORMAL, wx.WXK_F1, ind))
-        self.Bind(wx.EVT_MENU, self.on_fullscreen, id=ind)
+        # F keys
+        for i in range(1, 12):
+            ind = wx.NewId()
+            s = 'WXK_F%i' % i
+            key_used = getattr(wx, s)
+            shortcuts.append((wx.ACCEL_NORMAL, key_used, ind))
+            self.Bind(wx.EVT_MENU, lambda evt, i=i: self.on_shortcut_action(evt, i), id=ind)
 
         accel_tbl = wx.AcceleratorTable(shortcuts)
         self.SetAcceleratorTable(accel_tbl)
@@ -136,10 +146,7 @@ class MainFrame(wx.Frame):
 
         self.SetSizer(self.top_sizer)
 
-    def on_fullscreen(self, evt):
-        self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
-
-    def on_shortcut(self, evt, key_press):
+    def on_shortcut_id(self, evt, key_press):
         g_o = self.game_obj
         if self.selected_ids != self.shortcuts[key_press]:
             self.selected_ids = []
@@ -151,6 +158,21 @@ class MainFrame(wx.Frame):
 
         self.bottom_panel.update_selection(self.selected_ids)
         self.icon_panel.shortcut_used(self.selected_ids)
+
+    def on_shortcut_action(self, evt, indx):
+
+        if 0 < indx <= 10:
+            action_type = self.action_mapping[indx]
+
+            if action_type in self.bottom_panel.allowed_actions:
+                # create and process ActionEvent (handled in Main Frame)
+                new_event = ActionEvent(INITIATE_ACTION, self.GetId(),
+                                        action_type=action_type)
+
+                self.GetEventHandler().ProcessEvent(new_event)
+
+        elif indx == 11:
+            self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
 
     def set_shortcut(self, evt, key_press):
         self.shortcuts[key_press] = self.selected_ids
@@ -419,6 +441,7 @@ class BottomPanel(wx.Panel):
         self.game_obj = {}
         self.game_parameters = {}
         self.current_selection = []
+        self.allowed_actions = []
 
         self.action_panel = ActionPanel(self, self.all_graphics)
         self.detail_panel = SelectionDetails(self, self.all_graphics)
@@ -614,6 +637,8 @@ class BottomPanel(wx.Panel):
 
         if enter_building and sel['groups'] and not sel['transporter'] and len(sel['buildings']) == 1 and not some_transported and some_not_protected:
             allowed_actions.append('enter_building')
+
+        self.allowed_actions = allowed_actions
 
         self.action_panel.update_allowed_actions(allowed_actions)
 
@@ -958,8 +983,7 @@ class MoveUnits(wx.Dialog):
 
         self.scrolled_panel.SetupScrolling(True, True)
 
-        self.submit_button = wx.BitmapButton(
-            self, -1, bitmap=self.all_graphics['button_ok'])
+        self.submit_button = wx.BitmapButton(self, -1, bitmap=self.all_graphics['button_okay'])
         self.submit_button.Bind(wx.EVT_BUTTON, self.on_submit)
 
         self.cancel_button = wx.BitmapButton(
@@ -1877,7 +1901,7 @@ class Unit(wx.Panel):
 
         message = '\n'.join(params)
 
-        if not hasattr(self, "tip"):            
+        if not hasattr(self, "tip"):
             self.tip = STT.SuperToolTip(message)
 
             self.tip.SetTarget(self.unit_bitmap)
@@ -1886,12 +1910,11 @@ class Unit(wx.Panel):
             self.tip.SetHeader('Extended View: ' + new_obj['name'])
             # self.tip.SetHeaderBitmap(headerBmp)
 
-            #self.tip.SetFooter()
+            # self.tip.SetFooter()
             # self.tip.SetFooterBitmap(footerBmp)
 
             self.tip.SetDrawHeaderLine(True)
             self.tip.SetDrawFooterLine(False)
-
 
             self.tip.SetDropShadow(False)
             self.tip.SetUseFade(False)
@@ -1899,7 +1922,7 @@ class Unit(wx.Panel):
             self.tip.SetStartDelay(1)
             self.tip.SetEndDelay(10)
 
-            #self.tip.ApplyStyle('Blue Inverted')
+            # self.tip.ApplyStyle('Blue Inverted')
             self.tip.SetTopGradientColour('#23bdea')
             self.tip.SetMiddleGradientColour(colors[1])
             self.tip.SetBottomGradientColour('#118cb0')

@@ -49,7 +49,7 @@ class OwnPage(wiz.WizardPageSimple):
 
         self.all_items = all_items
 
-        self.select_groups.AppendItems(all_items.keys())
+        self.select_groups.AppendItems(sorted(all_items.keys()))
 
         self.sizer.Add(self.select_groups)
 
