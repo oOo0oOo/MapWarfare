@@ -6,6 +6,12 @@ import action_wizard
 from collections import Counter
 from math import exp
 
+# Import Super Tool Tip
+try:
+    from agw import supertooltip as STT
+except ImportError:  # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.supertooltip as STT
+
 INITIATE_ACTION = wx.NewEventType()
 EVT_INITIATE_ACTION = wx.PyEventBinder(INITIATE_ACTION, 1)
 
@@ -33,7 +39,7 @@ class MainFrame(wx.Frame):
         for i in range(10):
             self.shortcuts[i] = [i]
 
-        #self.shortcuts[0] = []
+        # self.shortcuts[0] = []
 
         # Define some global fonts and colors
         # Done at this point because wx.Font() requires running wx.App
@@ -142,13 +148,12 @@ class MainFrame(wx.Frame):
                     self.selected_ids.append(o_id)
         else:
             self.selected_ids = []
-            
+
         self.bottom_panel.update_selection(self.selected_ids)
         self.icon_panel.shortcut_used(self.selected_ids)
 
     def set_shortcut(self, evt, key_press):
         self.shortcuts[key_press] = self.selected_ids
-
 
     def initiate_action(self, evt):
         if evt.action_type not in ('move_units', 'rename', 'buy_card', 'play_card'):
@@ -160,7 +165,7 @@ class MainFrame(wx.Frame):
                 self.game_obj['groups'], self.game_obj[
                     'transporter'], self.game_obj['buildings'],
                 self.cards, self.connection)
-            
+
         elif evt.action_type == 'move_units':
             selected_groups = {}
             g_keys = self.game_obj['groups'].keys()
@@ -1698,7 +1703,8 @@ class Unit(wx.Panel):
         name_label.SetFont(fonts['small'])
         self.top_left_sizer.Add(name_label, 0, wx.TOP | wx.BOTTOM, 10)
 
-        self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, unit_bmp))
+        self.unit_bitmap = wx.StaticBitmap(self, -1, unit_bmp)
+        self.top_left_bottom_sizer.Add(self.unit_bitmap)
         self.top_left_bottom_sizer.AddSpacer(10)
         self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, elite_bmp))
 
@@ -1712,8 +1718,10 @@ class Unit(wx.Panel):
 
         # display all parameters
         u_p = self.unit['parameters']
-        params = ['attack', 'delay', 'life', 'shield', 'shoot_dist',
-                  'walk_dist', 'delay_shoot', 'delay_walk', 'age', 'total_damage']
+        params = ['attack', 'delay', 'life', 'shield',
+                  #'shoot_dist', 'walk_dist', 'delay_shoot',
+                  #'delay_walk', 'age', 'total_damage'
+                  ]
 
         self.params_sizer = wx.FlexGridSizer(3, 5)
         self.params_images = {}
@@ -1836,12 +1844,12 @@ class Unit(wx.Panel):
             ('delay', str(int(new_obj['delay']))),
             ('life', '{0}/{1}'.format(int(u_p['life']), int(u_p['max_life']))),
             ('shield', '{0}/{1}'.format(int(u_p['shield']), int(u_p['max_shield']))),
-            ('shoot_dist', str(int(u_p['shoot_dist']))),
-            ('walk_dist', str(int(u_p['walk_dist']))),
-            ('delay_shoot', str(int(u_p['delay_shoot']))),
-            ('delay_walk', str(int(u_p['delay_walk']))),
-            ('age', str(new_obj['age'])),
-            ('total_damage', str(new_obj['total_damage']))
+            #('shoot_dist', str(int(u_p['shoot_dist']))),
+            #('walk_dist', str(int(u_p['walk_dist']))),
+            #('delay_shoot', str(int(u_p['delay_shoot']))),
+            #('delay_walk', str(int(u_p['delay_walk']))),
+            #('age', str(new_obj['age'])),
+            #('total_damage', str(new_obj['total_damage']))
         ]
 
         for param, value in params:
@@ -1851,6 +1859,47 @@ class Unit(wx.Panel):
             self.params_value['life'].SetForegroundColour(wx.RED)
         else:
             self.params_value['life'].SetForegroundColour(colors[3])
+
+        self.generate_tool_tip(new_obj)
+
+    def generate_tool_tip(self, new_obj):
+
+        # create the main message
+        u_p = new_obj['parameters']
+        params = [
+            'Shoot Distance: \t' + str(int(u_p['shoot_dist'])),
+            'Walk Distance: \t' + str(int(u_p['walk_dist'])),
+            'Shoot Delay: \t' + str(int(u_p['delay_shoot'])),
+            'Walk Delay:  \t' + str(int(u_p['delay_walk'])),
+            'Age:        \t' + str(new_obj['age']),
+            'Total Damage: \t' + str(new_obj['total_damage'])
+        ]
+
+        message = '\n'.join(params)
+
+        self.tip = STT.SuperToolTip(message)
+
+        self.tip.SetTarget(self.unit_bitmap)
+
+        # self.tip.SetBodyImage(bodyImage)
+        self.tip.SetHeader('Extended View')
+        # self.tip.SetHeaderBitmap(headerBmp)
+
+        self.tip.SetFooter(new_obj['name'])
+        # self.tip.SetFooterBitmap(footerBmp)
+
+        self.tip.SetDrawHeaderLine(True)
+        self.tip.SetDrawFooterLine(True)
+
+        self.tip.SetDropShadow(False)
+        self.tip.SetUseFade(False)
+        self.tip.SetEndDelay(15)
+
+        self.tip.ApplyStyle('Pale Green')
+
+        # self.tip.SetTopGradientColour(topColour)
+        # self.tip.SetMiddleGradientColour(middleColour)
+        # self.tip.SetBottomGradientColour(bottomColour)
 
     def on_unit_action(self, evt):
         action_name = evt.GetEventObject().GetName()
@@ -2483,7 +2532,7 @@ class Icon(wx.Panel):
         if walk_dist == 1000000:
             walk_dist = 0
 
-        # Delay bar scaling 
+        # Delay bar scaling
         # Exponential decay: N(t) = N0 * exp(-1 * f * t)
         # Where f is decay constant used to scale decay
         # N0 is 100% delay bar...
