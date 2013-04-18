@@ -939,15 +939,14 @@ class MoveUnits(wx.Dialog):
 
     def __init__(self, parent, selected_groups, all_graphics, connection):
         wx.Dialog.__init__(self, parent,
-                           title='Move Units between Groups', size=(1000, 680))
+                           title='Move Units between Groups', size=(800, 600))
         self.all_graphics = all_graphics
         self.connection = connection
         self.selected_groups = selected_groups
-        self.SetBackgroundColour(colors[1])
 
         self.top_level_sizer = wx.BoxSizer(wx.VERTICAL)
         self.scrolled_panel = scrolled.ScrolledPanel(
-            self, -1, size=(990, 580))
+            self, -1, size=(790, 500))
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.displayed = {}
@@ -963,46 +962,47 @@ class MoveUnits(wx.Dialog):
             self.sizers[g_id] = wx.BoxSizer(wx.HORIZONTAL)
             for u_id, unit in group['units'].items():
                 u_sizer = wx.BoxSizer(wx.VERTICAL)
-                self.displayed[(g_id, u_id)] = Unit(self.scrolled_panel, g_id, u_id, unit, self.all_graphics)
-                self.choices[(g_id, u_id)] = wx.Choice(self.scrolled_panel,-1, size=(50, 50), choices = self.group_choices)
+                self.displayed[(g_id, u_id)] = Unit(
+                    self.scrolled_panel, g_id, u_id, unit, self.all_graphics)
+
+                self.choices[(g_id, u_id)] = wx.Choice(self.scrolled_panel,
+                                                       -1, size=(100, 50), choices = self.group_choices)
 
                 self.choices[(g_id, u_id)].SetSelection(
                     self.group_choices.index(str(g_id)))
 
-                u_sizer.Add(self.choices[(g_id, u_id)])
                 u_sizer.Add(self.displayed[(g_id, u_id)])
+                u_sizer.Add(self.choices[(g_id, u_id)])
 
                 self.sizers[g_id].Add(u_sizer)
 
             self.main_sizer.Add(self.sizers[g_id])
-            #self.main_sizer.AddSpacer(5)
+            self.main_sizer.AddSpacer(5)
 
         self.scrolled_panel.SetSizer(self.main_sizer)
 
         self.scrolled_panel.SetupScrolling(True, True)
 
-        self.submit_button = wx.BitmapButton(self, -1, bitmap=self.all_graphics['button_okay'], style=wx.TRANSPARENT)
+        self.submit_button = wx.BitmapButton(self, -1, bitmap=self.all_graphics['button_okay'])
         self.submit_button.Bind(wx.EVT_BUTTON, self.on_submit)
-        self.submit_button.SetBackgroundColour(colors[1])
 
         self.cancel_button = wx.BitmapButton(
-            self, -1, bitmap=self.all_graphics['button_back'], style=wx.TRANSPARENT)
+            self, -1, bitmap=self.all_graphics['button_back'])
         self.cancel_button.Bind(wx.EVT_BUTTON, self.on_cancel)
-        self.cancel_button.SetBackgroundColour(colors[1])
 
         self.new_name = wx.TextCtrl(self, -1, '')
 
         bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        bottom_sizer.Add(wx.StaticText(self, -1, 'Name of new group:'))
+        bottom_sizer.AddSpacer(5)
+        bottom_sizer.Add(self.new_name)
+        bottom_sizer.AddSpacer(10)
+        bottom_sizer.Add(self.submit_button)
+        bottom_sizer.AddSpacer(10)
+        bottom_sizer.Add(self.cancel_button)
 
-        bottom_sizer.Add(wx.StaticText(self, -1, 'Name of new group:'), 0, 
-            wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 5)
-
-        bottom_sizer.Add(self.new_name, 0, 
-            wx.ALIGN_CENTER_VERTICAL|wx.RIGHT, 10)
-        bottom_sizer.Add(self.submit_button, 0, wx.RIGHT, 10)
-        bottom_sizer.Add(self.cancel_button) 
-
-        self.top_level_sizer.Add(self.scrolled_panel, 0, wx.BOTTOM, 10)
+        self.top_level_sizer.Add(self.scrolled_panel)
+        self.top_level_sizer.AddSpacer(10)
         self.top_level_sizer.Add(bottom_sizer)
 
         self.SetSizer(self.top_level_sizer)
@@ -1679,7 +1679,7 @@ class Unit(wx.Panel):
     actions as buttons in separate scrolled panel'''
 
     def __init__(self, parent, g_id, u_id, unit, all_graphics):
-        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(130, -1))
+        wx.Panel.__init__(self, parent=parent, id=wx.ID_ANY, size=(130, 310))
         # self.SetMinSize((150, 300))
         self.all_graphics = all_graphics
         self.unit = unit
@@ -1776,14 +1776,13 @@ class Unit(wx.Panel):
         self.update_parameters(self.unit)
 
         # Make e list of all actions (scrolled): the action_panel
-        self.action_panel = scrolled.ScrolledPanel(self, -1)
+        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(130, 100))
 
         self.action_sizer = wx.BoxSizer(wx.VERTICAL)
         self.all_actions = {}
 
         self.collected_actions = {'upgrade': {}, 'shop': {}, 'equipment': {}}
         # Create each action (a button and a description)
-        found_standard = False
         for name, action in self.unit['parameters']['actions'].items():
             if action['category'] != 'standard':
                 self.collected_actions[action['category']][name] = action
@@ -1816,7 +1815,6 @@ class Unit(wx.Panel):
                 hor_sizer.Add(self.all_actions[name])
                 hor_sizer.Add(action_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 10)
                 self.action_sizer.Add(hor_sizer)
-                found_standard = True
 
         # shortcuts (action categories)
         self.shortcuts = {}
@@ -1835,14 +1833,8 @@ class Unit(wx.Panel):
         self.action_sizer.AddSpacer(10)
         self.action_sizer.Add(shortcut_sizer)
 
-
-        if found_standard:
-            self.action_panel.SetMinSize((130,30))
-        else:
-            self.action_panel.SetMinSize((130,100))
-
-
         self.action_panel.SetSizer(self.action_sizer)
+
         self.action_panel.SetupScrolling(False, True)
 
         self.main_sizer.Add(self.top_sizer)
