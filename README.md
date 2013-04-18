@@ -41,6 +41,11 @@ Some more tips:
 
 Change the server speed on-the-go & use the Play/Pause button in the User Interface
 
-Toggle Fullscreen using F1 and use the number keys to directly select groups
+Toggle Fullscreen using F11 and use the number keys to directly select groups
+Save current selection with CTRL + Number
+F1-F10 are shortcuts to the actions: F1 = Move, F2 = Attack, ...
+
 
 There is an enemy included ('punch_me'), so you have someone to battle...
+Lines 67 to 74 in engine.py define what units each player starts with.
+You can also remove punch_me there (prefix line with # to comment it).
