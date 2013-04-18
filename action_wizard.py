@@ -13,6 +13,7 @@ def makePageTitle(wizPg, title):
 
 
 class DistancePage(wiz.WizardPageSimple):
+
     def __init__(self, parent):
         wiz.WizardPageSimple.__init__(self, parent)
         self.sizer = makePageTitle(self, 'Distance between groups')
@@ -27,6 +28,7 @@ class DistancePage(wiz.WizardPageSimple):
 
 
 class OwnPage(wiz.WizardPageSimple):
+
     def __init__(self, parent, groups, transporter, buildings, sector=False, selection=False):
         wiz.WizardPageSimple.__init__(self, parent)
         self.sizer = makePageTitle(self, 'Select Own Targets')
@@ -63,6 +65,7 @@ class OwnPage(wiz.WizardPageSimple):
 
 
 class TransporterPage(wiz.WizardPageSimple):
+
     def __init__(self, parent, transporter):
         wiz.WizardPageSimple.__init__(self, parent)
         self.sizer = makePageTitle(self, 'Select Transporter')
@@ -79,11 +82,13 @@ class TransporterPage(wiz.WizardPageSimple):
 
 
 class SectorPage(wiz.WizardPageSimple):
-    def __init__(self, parent, sectors, current_sector):
+
+    def __init__(self, parent, sectors, current_sector, walk_dist=0):
         wiz.WizardPageSimple.__init__(self, parent)
-        self.sizer = makePageTitle(self, 'Sector Change')
-        self.sizer.Add(wx.StaticText(self, -1, """
-            Did you enter a new sector?"""))
+
+        self.walk_dist = wx.StaticText(self, -1, str(walk_dist))
+        self.walk_dist.SetFont(wx.Font(25, wx.SWISS, wx.NORMAL, wx.NORMAL))
+
         self.select_groups = wx.ListBox(self, -1)
 
         all_sectors = [str(sect) for sect in sectors.keys()]
@@ -92,13 +97,32 @@ class SectorPage(wiz.WizardPageSimple):
         self.select_groups.AppendItems(all_sectors)
         self.select_groups.SetSelection(current_index)
 
-        self.sizer.Add(self.select_groups)
+        self.DoLayout()
+
+    def DoLayout(self):
+        self.sizer = makePageTitle(self, 'Move Units')
+
+        main = wx.BoxSizer(wx.HORIZONTAL)
+        left = wx.BoxSizer(wx.VERTICAL)
+        right = wx.BoxSizer(wx.VERTICAL)
+
+        left.Add(wx.StaticText(self, -1, "Walk Distance:"), 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        left.Add(self.walk_dist, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.TOP, 10)
+
+        right.Add(wx.StaticText(self, -1, "New sector?"), 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        right.Add(self.select_groups, 0, wx.ALIGN_CENTER_HORIZONTAL)
+
+        main.Add(left, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 20)
+        main.Add(right, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 40)
+
+        self.sizer.Add(main)
 
     def get_value(self):
         return {'sector': int(self.select_groups.GetStringSelection())}
 
 
 class BuildingPage(wiz.WizardPageSimple):
+
     def __init__(self, parent, buildings):
         wiz.WizardPageSimple.__init__(self, parent)
         self.sizer = makePageTitle(self, 'Select Building')
@@ -115,6 +139,7 @@ class BuildingPage(wiz.WizardPageSimple):
 
 
 class EnemyPage(wiz.WizardPageSimple):
+
     def __init__(self, parent, enemy_groups, select_ids=False, sector=False):
         '''Select enemy.
         Optional:
@@ -229,7 +254,20 @@ class ActionWizard(wiz.Wizard):
                 self.connection.Send(data)
 
         elif action_type == 'move':
-            pages.append(SectorPage(self, self.sectors, current_sector))
+            # It sucks to be doing this again...
+            wd = []
+            for indx in self.selected_ids:
+                if indx in self.groups.keys():
+                    for u_id, u in self.groups[indx]['units'].items():
+                        wd.append(u['parameters']['walk_dist'])
+                elif indx in self.transporter.keys():
+                    wd.append(self.transporter[indx]['parameters']['walk_dist'])
+                elif indx in self.buildings.keys():
+                    wd.append(self.buildings[indx]['parameters']['walk_dist'])
+
+            walk_dist = min(wd)
+            
+            pages.append(SectorPage(self, self.sectors, current_sector, walk_dist))
             params = show_wizard(pages)
             if params:
                 self.connection.Send(

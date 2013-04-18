@@ -5,22 +5,44 @@ from collections import defaultdict
 
 
 def generate_random_name():
+    # Can generate approx. 42500 unique names
+
     syllables = {
         'part1': ['An', 'Lau', 'Mar', 'Ar', 'Si', 'Do', 'Mi', 'Al', 'Ro',
                   'Ste', 'Na', 'Am', 'At', 'San', 'Clau', 'Sil', 'Ab', 'Le',
-                  'No', 'Lu', 'Da', 'Ni', 'Jo', 'El', 'Sa', 'Ben', 'Lo'],
+                  'No', 'Lu', 'Da', 'Ni', 'Jo', 'El', 'Sa', 'Ben', 'Lo',
 
-        'part2': ['mi', 'li', 'mu', 'co', 'ri', 'to'],
+                  # O added Syllables for English names
+                  'A', 'E', 'Al', 'Wil', 'Ma', 'Ja', 'Jay', 'Je', 'Jus',
+                  'Ha', 'O', 'Char', 'Geo', 'Dy', 'Se', 'Co', 'Ry', 'Zo',
+                  'Den'
+
+                  ],
+
+        'part2': ['mi', 'li', 'mu', 'co', 'ri', 'to',
+
+                  # O added Syllables for English names
+                  'u', 'na', 'ti', 'ty', 'ni', 'd', 'der'
+                  ],
 
         'part3': ['dre', 'rin', 'tin', 'ro', 'co', 'fan', 'as',
                   'dro', 'van', 'dio', 'on', 'man', 'el', 'ca', 'id',
                   'vin', 'nas', 'an', 'bin', 'las', 'min', 'bert', 'dy',
-                  'gel', 'nio', 'is']
+                  'gel', 'nio', 'is'
+
+                  # O added Syllables for English names
+                  'ron', 'ian', 'iam', 'son', 'mia', 'ry', 'ver', 'lie',
+                  'ly', 'mes', 'ge', 'mas', 'than', 'sen', 'cob', 'fred',
+                  'lan', 'len', 'nor', 'xander', 'n', 'ran', 'ren', 'ley',
+                  'ton', 'ster', 'roy', 'ne', 'win', 'mar', 'mer', 'riah',
+                  'ion', 'cus', 'us', 'joy', 'dan', 'den', 'ven', 'nis', 'ric',
+                  'en', 'vis', 'o'
+                  ]
     }
 
     name = random.choice(syllables['part1'])
 
-    if random.random() > 0.7:
+    if random.random() > 0.75:
         name += random.choice(syllables['part2'])
 
     name += random.choice(syllables['part3'])
