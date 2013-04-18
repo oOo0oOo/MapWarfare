@@ -1,9 +1,12 @@
 MapWarfare
 ==========
 
-##### Screenshots
+##### Standard View
 
 ![Standard View](/screenshots/1.png "Standard View")
+
+
+##### Shop View
 
 ![Shop View](/screenshots/2.png "Shop View")
 
