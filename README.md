@@ -1,6 +1,13 @@
 MapWarfare
 ==========
 
+##### Screenshots
+
+![Standard View](/screenshots/1.png "Standard View")
+
+![Shop View](/screenshots/2.png "Shop View")
+
+
 ##### Getting started:
 
 1. Download & Install: [Python 2.7.x](http://python.org/download/), [wxPython 2.8 (py27)](http://wxpython.org/download.php)
