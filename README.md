@@ -43,7 +43,7 @@ MapWarfare
 
 Some more tips:
 
-Change the server speed on-the-go & use the Play/Pause button in the User Interface
+Change the server speed on-the-go & use the Play/Pause button in the UI.
 Below 0.1s/tick is not recomended as the UI will not be able to keep up.
 
 Toggle Fullscreen using F11 and use the number keys to directly select groups
