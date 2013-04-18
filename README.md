@@ -6,14 +6,18 @@ MapWarfare
 ![Standard View](/screenshots/1.png "Standard View")
 
 
+
+
 ##### Shop View
 
 ![Shop View](/screenshots/2.png "Shop View")
 
 
+
+
 ##### Getting started:
 
-1. Download & Install: [Python 2.7.x](http://python.org/download/), [wxPython 2.8 (py27)](http://wxpython.org/download.php)
+1. Download and Install: [Python 2.7.x](http://python.org/download/) & [wxPython 2.8 (py27)](http://wxpython.org/download.php)
 
 2. Clone repository or download as .zip (see top of page)
 
@@ -40,6 +44,7 @@ MapWarfare
 Some more tips:
 
 Change the server speed on-the-go & use the Play/Pause button in the User Interface
+Below 0.1s/tick is not recomended as the UI will not be able to keep up.
 
 Toggle Fullscreen using F11 and use the number keys to directly select groups
 Save current selection with CTRL + Number
