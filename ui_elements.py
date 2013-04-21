@@ -1055,7 +1055,7 @@ class MoveUnits(wx.Dialog):
 class ActionCategory(wx.Dialog):
 
     def __init__(self, parent, title, actions, all_graphics):
-        wx.Dialog.__init__(self, parent, title=title, size=(200, 250))
+        wx.Dialog.__init__(self, parent, title=title, size=(200, 300))
         self.all_graphics = all_graphics
         self.selected_action = False
 
@@ -1063,7 +1063,7 @@ class ActionCategory(wx.Dialog):
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         # Make e list of all actions (scrolled): the action_panel
-        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(170, 160))
+        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(170, 210))
 
         self.action_sizer = wx.BoxSizer(wx.VERTICAL)
         self.all_actions = {}
@@ -1076,15 +1076,20 @@ class ActionCategory(wx.Dialog):
                 name=name, size=(20, 20), style = wx.BORDER_NONE)
             self.all_actions[name].Bind(wx.EVT_BUTTON, self.on_click)
 
-            label = name + ' '
+
+            label = name + '\n'
+
+            add = []
             if action['price'] > 0:
-                label += ', ' + str(int(action['price'])) + '$'
+                add.append(str(int(action['price'])) + '$')
 
             if action['delay'] > 0:
-                label += ', wait ' + str(int(action['delay']))
+                add.append('wait ' + str(int(action['delay'])))
 
             if action['num_uses'] != -1:
-                label += ', ' + str(action['num_uses']) + 'x'
+                add.append(str(action['num_uses']) + 'x')
+
+            label += ', '.join(add)
 
             hor_sizer.Add(self.all_actions[name])
             hor_sizer.AddSpacer(10)
@@ -1801,7 +1806,7 @@ class Unit(wx.Panel):
         self.update_parameters(self.unit)
 
         # Make e list of all actions (scrolled): the action_panel
-        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(130, 100))
+        self.action_panel = scrolled.ScrolledPanel(self, -1, size=(140, 200))
 
         self.action_sizer = wx.BoxSizer(wx.VERTICAL)
         self.all_actions = {}
@@ -1819,13 +1824,12 @@ class Unit(wx.Panel):
                     name=name, size=(20, 20), style = wx.BORDER_NONE)
                 self.all_actions[name].Bind(wx.EVT_BUTTON, self.on_unit_action)
 
-                label = name + ' '
-                if action['price'] > 0:
-                    label += ', ' + str(int(action['price'])) + '$'
-
-                label += '\n'
+                label = name + '\n'
 
                 add = []
+                if action['price'] > 0:
+                    add.append(str(int(action['price'])) + '$')
+
                 if action['delay'] > 0:
                     add.append('wait ' + str(int(action['delay'])))
 
