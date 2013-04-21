@@ -153,14 +153,13 @@ class EnemyPage(wiz.WizardPageSimple):
         self.sizer = makePageTitle(self, 'Select Enemy')
         self.sizer.Add(wx.StaticText(self, -1, """
             Choose the enemy player you are targeting."""))
-        self.select_enemy = wx.ComboBox(
-            self, choices=enemy_groups.keys(), style=wx.CB_READONLY)
+        self.select_enemy = wx.ComboBox(self, choices=enemy_groups.keys(), style=wx.CB_READONLY,)
         self.sizer.Add(self.select_enemy)
 
         if select_ids:
             self.sizer.Add(wx.StaticText(self, -1, """
             Which IDs are you targeting?"""))
-            self.select_groups = wx.ListBox(self, -1, style=wx.LB_MULTIPLE)
+            self.select_groups = wx.ListBox(self, -1, style=wx.LB_MULTIPLE, size = (50, 200))
             self.sizer.Add(self.select_groups)
             self.select_enemy.Bind(wx.EVT_COMBOBOX, self.enemy_selected)
 
