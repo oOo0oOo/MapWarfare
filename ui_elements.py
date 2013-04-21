@@ -3,6 +3,8 @@ import wx.lib.buttons as buttons
 import wx.lib.scrolledpanel as scrolled
 import wx.lib.agw.pygauge as pg
 import action_wizard
+import configuration_helper as conf
+
 from collections import Counter
 from math import exp
 
@@ -178,7 +180,7 @@ class MainFrame(wx.Frame):
         self.shortcuts[key_press] = self.selected_ids
 
     def initiate_action(self, evt):
-        if evt.action_type not in ('move_units', 'rename', 'buy_card', 'play_card'):
+        if evt.action_type not in ('move_units', 'rename', 'buy_card', 'play_card', 'configuration'):
             ids = self.selected_ids
 
             # Call action wizard
@@ -209,6 +211,11 @@ class MainFrame(wx.Frame):
                         self.selected_ids[0], 'name': dlg.GetValue()}
                 self.connection.Send(data)
 
+        elif evt.action_type == 'configuration':
+            print 'here'
+            dial = conf.ConfigurationHelper(game_parameters = self.game_parameters)
+            start = dial.ShowModal()
+
         elif evt.action_type == 'buy_card':
             choices = self.game_parameters['card_parameters'].keys()
             choices = [str(c) for c in choices]
@@ -217,8 +224,7 @@ class MainFrame(wx.Frame):
                 choices=choices)
             res = dlg.ShowModal()
             if res:
-                data = {'action': 'buy_card', 'amount':
-                        int(dlg.GetStringSelection())}
+                data = {'action': 'buy_card', 'amount':int(dlg.GetStringSelection())}
                 self.connection.Send(data)
 
         elif evt.action_type == 'play_card':
@@ -308,33 +314,43 @@ class CardPanel(wx.Panel):
             self, -1, self.all_graphics['action_buy'], style=wx.BORDER_NONE)
         self.play_card_btn = wx.BitmapButton(
             self, -1, self.all_graphics['action_card'], style=wx.BORDER_NONE)
+        self.conf_btn = wx.BitmapButton(
+            self, -1, self.all_graphics['action_config'], style=wx.BORDER_NONE)
 
         self.buy_card_btn.SetBackgroundColour(colors[1])
         self.play_card_btn.SetBackgroundColour(colors[1])
+        self.conf_btn.SetBackgroundColour(colors[1])
 
-        self.buy_card_btn.Bind(wx.EVT_BUTTON, self.on_buy_card)
-        self.play_card_btn.Bind(wx.EVT_BUTTON, self.on_play_card)
+        self.buy_card_btn.Bind(wx.EVT_BUTTON, lambda x, act = 'buy_card': self.on_event(x, act))
+        self.play_card_btn.Bind(wx.EVT_BUTTON, lambda x, act = 'play_card': self.on_event(x, act))
+        self.conf_btn.Bind(wx.EVT_BUTTON, lambda x, act = 'configuration': self.on_event(x, act))
 
         self.init_layout()
 
     def init_layout(self):
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        main_sizer.Add(self.buy_card_btn)
-        main_sizer.AddSpacer(5)
-        main_sizer.Add(self.play_card_btn)
+        main_sizer.Add(self.buy_card_btn, 0, wx.RIGHT, 5)
+        main_sizer.Add(self.play_card_btn, 0, wx.RIGHT, 5)
+        main_sizer.Add(self.conf_btn)
         self.SetSizer(main_sizer)
         self.Layout()
 
-    def on_play_card(self, evt):
-        # create and process ActionEvent (handled in Main Frame)
-        new_event = ActionEvent(
-            INITIATE_ACTION, self.GetId(), action_type='play_card')
-        self.GetEventHandler().ProcessEvent(new_event)
+    #def on_play_card(self, evt):
+    #    # create and process ActionEvent (handled in Main Frame)
+    #    new_event = ActionEvent(
+    #        INITIATE_ACTION, self.GetId(), action_type='play_card')
+    #    self.GetEventHandler().ProcessEvent(new_event)
 
-    def on_buy_card(self, evt):
+    #def on_buy_card(self, evt):
+        # create and process ActionEvent (handled in Main Frame)
+    #    new_event = ActionEvent(
+    #        INITIATE_ACTION, self.GetId(), action_type='buy_card')
+    #    self.GetEventHandler().ProcessEvent(new_event)
+
+    def on_event(self, evt, action_type):
         # create and process ActionEvent (handled in Main Frame)
         new_event = ActionEvent(
-            INITIATE_ACTION, self.GetId(), action_type='buy_card')
+            INITIATE_ACTION, self.GetId(), action_type=action_type)
         self.GetEventHandler().ProcessEvent(new_event)
 
 

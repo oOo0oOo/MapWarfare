@@ -6,48 +6,57 @@ import wx.lib.scrolledpanel as scrolled
 from configuration_tester import FightTester as Tester
 
 class ConfigurationHelper(wx.Dialog):
-    def __init__(self):
+    def __init__(self, filename = '', game_parameters = {}):
         wx.Dialog.__init__(
             self, None, title='Uster Wars Configuration Helper', size=(1330, 700))
         self.top_sizer = wx.BoxSizer(wx.VERTICAL)
         self.scroll_panel = scrolled.ScrolledPanel(
             self, -1, size=(1300, 670))
-        # All game engine parameters
-        engine_params = {
-            # Initial duration of one tick in seconds
-            #(can be changed during game)
-            'tick_duration': 10,
-            # How much $ in initial account
-            'start_account': 300,
-            # These are the sectors defined at the top
-            'all_sectors': {1: {'weight':0.5, 'victory':0}, 2: {'weight':0.5,'victory':0}, 3: {'weight':0.5, 'victory':0}},
-            # Rewards ($)
-            'per_sector_per_tick': 3,
-            'sector_takeover': 250,
-            'constant_per_tick': 5,
-            # Take over factor x: Player has to have x times the life
-            # in a sector to overtake it.
-            # E.g. Take over factor = 1.5; A has 1200 life (1 HQ plus some units) in sector,
-            # B has to have at least 1.5 * 1200 = 1800 life in
-            # sector to take over.
-            'take_over_factor': 1.5,
-            # up to how many percent less damage: e.g. 0.4 = 0% -
-            # 40% less damage if protected
-            'protection_effect': 0.4,
-            # how many rounds the units can not act when being protected
-            # use 0 if immediately, 1 if in the next round and 2 if
-            # one round delayed
-            'protection_in': 2,
-            'protection_out': 1,
-            'delay_damage': 0.0,
-            'extra_shoot_dist': 2,
-            'max_victory_diff': 50
-        }
 
-        self.game_parameters = {
-            'unit_parameters': {}, 'transport_parameters': {},
-            'building_parameters': {}, 'engine_parameters': engine_params,
-            'card_parameters': {}}
+        if filename:
+            self.game_parameters = pickle.load(open(filename, "rb"))
+
+        elif game_parameters:
+            self.game_parameters = game_parameters
+
+        else:
+            # All game engine parameters
+            engine_params = {
+                # Initial duration of one tick in seconds
+                #(can be changed during game)
+                'tick_duration': 10,
+                # How much $ in initial account
+                'start_account': 300,
+                # These are the sectors defined at the top
+                'all_sectors': {1: {'weight':0.5, 'victory':0}, 2: {'weight':0.5,'victory':0}, 3: {'weight':0.5, 'victory':0}},
+                # Rewards ($)
+                'per_sector_per_tick': 3,
+                'sector_takeover': 250,
+                'constant_per_tick': 5,
+                # Take over factor x: Player has to have x times the life
+                # in a sector to overtake it.
+                # E.g. Take over factor = 1.5; A has 1200 life (1 HQ plus some units) in sector,
+                # B has to have at least 1.5 * 1200 = 1800 life in
+                # sector to take over.
+                'take_over_factor': 1.5,
+                # up to how many percent less damage: e.g. 0.4 = 0% -
+                # 40% less damage if protected
+                'protection_effect': 0.4,
+                # how many rounds the units can not act when being protected
+                # use 0 if immediately, 1 if in the next round and 2 if
+                # one round delayed
+                'protection_in': 2,
+                'protection_out': 1,
+                'delay_damage': 0.0,
+                'extra_shoot_dist': 2,
+                'max_victory_diff': 50
+            }
+
+            self.game_parameters = {
+                'unit_parameters': {}, 'transport_parameters': {},
+                'building_parameters': {}, 'engine_parameters': engine_params,
+                'card_parameters': {}}
+
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.main_sizer.AddSpacer(10)
