@@ -347,11 +347,15 @@ class Header(wx.Panel):
         self.run_ticks = False
 
         self.SetMinSize((1000, -1))
-        params = ['name', 'account', 'sectors']
+        params = [('name', ''), 
+                ('account', 'icon_header_account_big'), 
+                ('sectors', 'icon_header_my_sectors')]
+
         self.displayed = {}
-        for param in params:
-            self.displayed['icon_' + param] = wx.StaticBitmap(
-                self, bitmap=self.all_graphics['unknown'])
+        for param, bmp in params:
+            if param != 'name':
+                self.displayed['icon_' + param] = wx.StaticBitmap(self, bitmap=self.all_graphics[bmp])
+
             self.displayed[param] = wx.StaticText(self, -1, '')
             self.displayed[param].SetForegroundColour(colors[3])
             self.displayed[param].SetFont(fonts['title'])
@@ -376,7 +380,12 @@ class Header(wx.Panel):
 
         params = ['name', 'account', 'sectors']
         for param in params:
-            main_sizer.Add(self.displayed['icon_' + param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 10)
+
+            if param != 'name':
+                main_sizer.Add(self.displayed['icon_' + param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 10)
+            else:
+                main_sizer.AddSpacer(15)
+            
             if not param == 'sectors':
                 d = 100
             else:
