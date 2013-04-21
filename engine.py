@@ -40,12 +40,25 @@ def generate_random_name():
                   ]
     }
 
-    name = random.choice(syllables['part1'])
+    found = False
+    while not found:
+      found = True
+      name = random.choice(syllables['part1'])
 
-    if random.random() > 0.75:
-        name += random.choice(syllables['part2'])
+      if random.random() > 0.75:
+          name += random.choice(syllables['part2'])
 
-    name += random.choice(syllables['part3'])
+      name += random.choice(syllables['part3'])
+
+      #Some rules for nicer names
+      
+      #No doubles
+      char = ['i', 'u', 'e', 'h', 'r']
+
+      for c in char:
+        if name.find(2*c) != -1:
+          found = False
+          break
 
     return name
 
