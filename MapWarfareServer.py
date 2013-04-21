@@ -258,14 +258,16 @@ class MapWarfareServer(Server):
     def update_sectors_all(self):
 
         for player in self.players:
-            nickname = player.nickname
+            nickname = str(player.nickname)
 
             player.Send({"action": "update_ui", "groups": False, 'game_parameters': False, 'enemy_groups': False,
                          'status': self.get_status(nickname), 'transporter': False, 'buildings': False, 'sectors': self.game.sectors,
                          'cards': False})
 
     def update_enemy_groups_all(self):
+
         for player in self.players:
+            nickname = str(player.nickname)
             player.Send({"action": "update_ui", "groups": False, 'transporter': False, 'buildings': False,
                          'cards': False, 'game_parameters': False, 
                          'enemy_groups': self.game.get_all_enemy_groups(nickname),
