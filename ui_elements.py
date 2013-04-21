@@ -365,7 +365,9 @@ class Header(wx.Panel):
         self.SetMinSize((1000, -1))
         params = [('name', ''), 
                 ('account', 'icon_header_account_big'), 
-                ('sectors', 'icon_header_my_sectors')]
+                ('sectors', 'icon_header_my_sectors'),
+                ('ticks', 'icon_delay')
+                ]
 
         self.displayed = {}
         for param, bmp in params:
@@ -377,7 +379,7 @@ class Header(wx.Panel):
             self.displayed[param].SetFont(fonts['title'])
 
         # Display victory difference
-        self.victory = pg.PyGauge(self, -1, size=(200, 20), style=wx.GA_HORIZONTAL)
+        self.victory = pg.PyGauge(self, -1, size=(175, 20), style=wx.GA_HORIZONTAL)
         self.victory.SetBackgroundColour(colors[1])
         self.victory.SetBorderColour(colors[0])
 
@@ -394,18 +396,20 @@ class Header(wx.Panel):
     def DoLayout(self):
         main_sizer = wx.FlexGridSizer(1, 16)
 
-        params = ['name', 'account', 'sectors']
-        for param in params:
+        for param in ['name', 'account', 'sectors', 'ticks']:
 
             if param != 'name':
                 main_sizer.Add(self.displayed['icon_' + param], 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 10)
             else:
                 main_sizer.AddSpacer(15)
             
-            if not param == 'sectors':
-                d = 100
-            else:
+            if param == 'sectors':
                 d = 330
+            elif param == 'ticks':
+                d = 35
+            else:
+                d = 100
+
             main_sizer.Add(self.displayed[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, d)
 
         main_sizer.Add(self.victory, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
@@ -1920,6 +1924,7 @@ class Unit(wx.Panel):
         # create the main message
         u_p = new_obj['parameters']
         params = [
+            'Shield Factor:    ' + str(round(u_p['shield_factor'], 2)),
             'Shoot Distance:   ' + str(int(u_p['shoot_dist'])),
             'Walk Distance:    ' + str(int(u_p['walk_dist'])),
             'Shoot Delay:      ' + str(int(u_p['delay_shoot'])),

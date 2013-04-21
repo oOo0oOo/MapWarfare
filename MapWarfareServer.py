@@ -193,14 +193,8 @@ class MapWarfareServer(Server):
 
     def register_player(self, player, nickname, sector):
         msg_stack = self.game.new_player(nickname, sector)
-        pl = self.game.players[nickname]
-        sectors = [sec for sec, pla in self.game.sectors.items() if pla == nickname]
-        
-        diff = self.game.get_victory_difference(nickname)
-        status = {'account': pl['account'], 'sectors': sectors,
-                  'name': nickname, 'diff': diff}
 
-        enemy_groups = self.game.get_all_enemy_groups(nickname)
+        pl = self.game.players[nickname]
 
         player.Send({"action": "update_ui",
                      "groups": pl['groups'],
@@ -208,8 +202,8 @@ class MapWarfareServer(Server):
                      'buildings': pl['buildings'],
                      'cards': pl['cards'],
                      'game_parameters': self.game.game_parameters,
-                     'status': status,
-                     'enemy_groups': enemy_groups,
+                     'status': self.get_status(nickname),
+                     'enemy_groups': self.game.get_all_enemy_groups(nickname),
                      'sectors': dict(self.game.sectors),
                      'play': not self.game_paused
                      })
@@ -219,63 +213,62 @@ class MapWarfareServer(Server):
 
         print 'Registered ' + player.nickname + ': ' + asctime()[11:19]
 
+    def get_status(self, nickname):
+        pl = self.game.players[nickname]
+        sectors = [sec for sec, pla in self.game.sectors.items() if pla == nickname]
+        
+        diff = self.game.get_victory_difference(nickname)
+        status = {'account': pl['account'], 'sectors': sectors,
+                  'name': nickname, 'diff': diff, 'ticks': self.game.ticks}
+
+        return status
+
     def del_player(self, player):
         print "Deleting Player" + str(player.addr) + ' ' + asctime()
         del self.players[player]
 
     def update_groups_status(self, player, update_selection=False):
         nickname = str(player.nickname)
-        sectors = [sec for sec, pla in self.game.sectors.items() if pla == nickname]
 
         pl = self.game.players[nickname]
-        enemy_groups = self.game.get_all_enemy_groups(nickname)
-        diff = self.game.get_victory_difference(nickname)
-        status = {'account': self.game.players[nickname]['account'], 'sectors': sectors,
-                  'name': nickname, 'diff': diff}
 
         player.Send(
-            {"action": "update_ui", "groups": pl['groups'], 'transporter': pl['transporter'], 'buildings': pl['buildings'],
-             'cards': False, 'game_parameters': False, 'enemy_groups': enemy_groups, 'status': status, 'sectors': False,
+            {"action": "update_ui", 
+            "groups": pl['groups'], 'transporter': pl['transporter'], 'buildings': pl['buildings'],
+             'cards': False, 
+             'game_parameters': False, 
+             'enemy_groups': self.game.get_all_enemy_groups(nickname), 
+             'status': self.get_status(nickname), 
+             'sectors': False,
              'update_selection': update_selection})
 
     def update_player_ui(self, player, update_selection=False):
         nickname = str(player.nickname)
-        if nickname == 'anonymous':
-            return
         pl = self.game.players[nickname]
-
-        sectors = [sec for sec, pla in self.game.sectors.items() if pla == nickname]
-
-        diff = self.game.get_victory_difference(nickname)
-        status = {'account': pl['account'], 'sectors': sectors,
-                  'name': nickname, 'diff': diff}
-
-        enemy_groups = self.game.get_all_enemy_groups(nickname)
 
         player.Send({"action": "update_ui", "groups": pl['groups'],
                      'transporter': pl['transporter'], 'buildings': pl['buildings'],
-                     'game_parameters': False, 'enemy_groups': enemy_groups,
+                     'game_parameters': False, 
+                     'enemy_groups': self.game.get_all_enemy_groups(nickname),
                      'cards': pl['cards'],
-                     'status': status, 'sectors': self.game.sectors,
+                     'status': self.get_status(nickname), 
+                     'sectors': self.game.sectors,
                      'update_selection': update_selection})
 
     def update_sectors_all(self):
 
         for player in self.players:
             nickname = player.nickname
-            sectors = [sec for sec, pla in self.game.sectors.items() if pla == nickname]
-            diff = self.game.get_victory_difference(nickname)
-            status = {'account': self.game.players[nickname]['account'], 'sectors': sectors,
-                      'name': nickname, 'diff': diff}
+
             player.Send({"action": "update_ui", "groups": False, 'game_parameters': False, 'enemy_groups': False,
-                         'status': status, 'transporter': False, 'buildings': False, 'sectors': self.game.sectors,
+                         'status': self.get_status(nickname), 'transporter': False, 'buildings': False, 'sectors': self.game.sectors,
                          'cards': False})
 
     def update_enemy_groups_all(self):
         for player in self.players:
-            enemy_groups = self.game.get_all_enemy_groups(player.nickname)
             player.Send({"action": "update_ui", "groups": False, 'transporter': False, 'buildings': False,
-                         'cards': False, 'game_parameters': False, 'enemy_groups': enemy_groups,
+                         'cards': False, 'game_parameters': False, 
+                         'enemy_groups': self.game.get_all_enemy_groups(nickname),
                          'status': False, 'sectors': False})
 
     def send_msg_stack(self, msg_stack):
