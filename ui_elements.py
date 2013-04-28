@@ -41,6 +41,8 @@ class MainFrame(wx.Frame):
         for i in range(10):
             self.shortcuts[i] = [i]
 
+        self.reserved_action = {}
+
         # self.shortcuts[0] = []
 
         # Define some global fonts and colors
@@ -165,29 +167,44 @@ class MainFrame(wx.Frame):
 
         if 0 < indx <= 10:
             action_type = self.action_mapping[indx]
+            if self.selected_ids:
+                if action_type in self.bottom_panel.allowed_actions:
+                    # create and process ActionEvent (handled in Main Frame)
+                    new_event = ActionEvent(INITIATE_ACTION, self.GetId(),
+                                            action_type=action_type)
 
-            if action_type in self.bottom_panel.allowed_actions:
-                # create and process ActionEvent (handled in Main Frame)
-                new_event = ActionEvent(INITIATE_ACTION, self.GetId(),
-                                        action_type=action_type)
+                    self.GetEventHandler().ProcessEvent(new_event)
 
-                self.GetEventHandler().ProcessEvent(new_event)
+                elif action_type in ('fight', 'move'):
+                    #Reserve an action
+                    g_o = self.game_obj
+                    for o_id in self.selected_ids:
+                        if o_id in g_o['groups'].keys() + g_o['transporter'].keys() + g_o['buildings'].keys():
+                            try:
+                                act = self.reserved_action[o_id]
+                                if act == action_type:
+                                    self.icon_panel.set_reserved_action(o_id, False)
+                                    del self.reserved_action[o_id]
+                                else:
+                                    self.reserved_action[o_id] = action_type
+                                    self.icon_panel.set_reserved_action(o_id, action_type)
+
+                            except KeyError:
+                                self.reserved_action[o_id] = action_type
+                                self.icon_panel.set_reserved_action(o_id, action_type)
+
 
         elif indx == 11:
             self.ShowFullScreen(not self.IsFullScreen(), wx.FULLSCREEN_ALL)
 
     def set_shortcut(self, evt, key_press):
-        self.shortcuts[key_press] = self.selected_ids
+        self.shortcuts[key_press] = self.selected_ids[:]
 
     def initiate_action(self, evt):
         if evt.action_type not in ('move_units', 'rename', 'buy_card', 'play_card', 'configuration'):
-            ids = self.selected_ids
-
             # Call action wizard
-            wiz = action_wizard.ActionWizard(
-                evt, ids, self.enemy_groups, self.sectors,
-                self.game_obj['groups'], self.game_obj[
-                    'transporter'], self.game_obj['buildings'],
+            wiz = action_wizard.ActionWizard(evt, self.selected_ids, self.enemy_groups, self.sectors,
+                self.game_obj['groups'], self.game_obj['transporter'], self.game_obj['buildings'],
                 self.cards, self.connection)
 
         elif evt.action_type == 'move_units':
@@ -198,8 +215,7 @@ class MainFrame(wx.Frame):
                     group = self.game_obj['groups'][ind]
                     selected_groups[ind] = group
 
-            dlg = MoveUnits(
-                self, selected_groups, self.all_graphics, self.connection)
+            dlg = MoveUnits(self, selected_groups, self.all_graphics, self.connection)
             dlg.ShowModal()
 
         elif evt.action_type == 'rename':
@@ -212,7 +228,6 @@ class MainFrame(wx.Frame):
                 self.connection.Send(data)
 
         elif evt.action_type == 'configuration':
-            print 'here'
             dial = conf.ConfigurationHelper(game_parameters = self.game_parameters)
             start = dial.ShowModal()
 
@@ -302,6 +317,67 @@ class MainFrame(wx.Frame):
                 self.bottom_panel.update_selection(self.selected_ids)
         except KeyError:
             pass
+
+        self.execute_reserved_actions()
+
+    def execute_reserved_actions(self):
+        g_o = self.game_obj
+        for o_id, action in self.reserved_action.items():
+            #Fight if all units not delayed
+            if action == 'fight':
+                found = False
+                if o_id in g_o['groups'].keys():
+                    g = g_o['groups'][o_id]
+                    for unit in g['units'].values():
+                        if unit['delay'] > 0:
+                            found = True
+                            break
+                elif o_id in g_o['transporter'].keys():
+                    if g_o['transporter'][o_id]['delay'] >0:
+                        found = True
+
+                elif o_id in self.game_obj['buildings'].keys():
+                    if g_o['buildings'][o_id]['delay'] >0:
+                        found = True
+
+                if not found:
+                    # create and process ActionEvent (handled in Main Frame)
+                    del self.reserved_action[o_id]
+                    self.icon_panel.set_reserved_action(o_id, False)
+                    
+                    #UGLY: Change selected_ids (needed for action_wizard...)
+                    self.selected_ids = [o_id]
+                    
+                    new_event = ActionEvent(INITIATE_ACTION, self.GetId(), action_type='fight')
+
+                    self.GetEventHandler().ProcessEvent(new_event)
+
+            if action == 'move':
+                #Move if no one delayed, no one protected, no one in building & group not in transporter
+                found = False
+                if o_id in g_o['groups'].keys():
+                    g = g_o['groups'][o_id]
+                    if g['transporter'] == -1:
+                        for u in g['units'].values():
+                            if u['delay']>0 or u['protected'] or u['building'] != -1:
+                                found = True
+                                break
+
+                elif o_id in g_o['transporter'].keys():
+                    o = g_o['transporter'][o_id]
+                    if u['delay'] > 0 or u['protected']:
+                        found = True
+
+                if not found:
+                    del self.reserved_action[o_id]
+                    self.icon_panel.set_reserved_action(o_id, False)
+                    
+                    #UGLY: Change selected_ids (needed for action_wizard...)
+                    self.selected_ids = [o_id]
+
+                    new_event = ActionEvent(INITIATE_ACTION, self.GetId(), action_type='move')
+
+                    self.GetEventHandler().ProcessEvent(new_event)
 
 
 class CardPanel(wx.Panel):
@@ -2417,6 +2493,7 @@ class IconPanel(scrolled.ScrolledPanel):
         for o_id in displayed_left:
             self.displayed[o_id].Destroy()
             del self.displayed[o_id]
+            self.FitInside()
 
         if added:
             if len(self.displayed.keys()) == 19:
@@ -2424,6 +2501,10 @@ class IconPanel(scrolled.ScrolledPanel):
                 self.FitInside()
             else:
                 self.FitInside()
+
+    def set_reserved_action(self, o_id, state):
+        if o_id in self.displayed.keys():
+            self.displayed[o_id].set_reserved_action(state)
 
     def shortcut_used(self, ids):
         for id in self.displayed.keys():
@@ -2443,6 +2524,7 @@ class Icon(wx.Panel):
         self.all_graphics = all_graphics
 
         self.o_id = o_id
+        self.has_reserved_action = False
 
         # self.top_level_sizer.Add(self.title)
         # self.top_level_sizer.AddSpacer(5)
@@ -2483,10 +2565,12 @@ class Icon(wx.Panel):
         self.select_btn.SetBitmapSelected(bmp_selected)
         self.Bind(wx.EVT_BUTTON, self.icon_selected, self.select_btn)
 
-        self.delay_bar = pg.PyGauge(self, -1, size=(80, 10), style=wx.GA_HORIZONTAL)
+        self.delay_bar = pg.PyGauge(self, -1, size=(65, 10), style=wx.GA_HORIZONTAL)
         self.delay_bar.SetBackgroundColour(colors[1])
         self.delay_bar.SetBorderColour(colors[0])
         self.delay_bar.SetBarColour(colors[2])
+
+        self.reserved_action = wx.StaticBitmap(self, -1, all_graphics['unknown_icon'])
 
         self.name = wx.StaticText(self, wx.ID_ANY, '')
         self.number = wx.StaticText(self, wx.ID_ANY, '')
@@ -2519,16 +2603,20 @@ class Icon(wx.Panel):
         top_level_sizer.Add(main_sizer, 0, wx.TOP, 5)
 
         left_sizer = wx.BoxSizer(wx.VERTICAL)
+        bottom_left = wx.BoxSizer(wx.HORIZONTAL)
 
         hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
         hor_sizer.Add(self.number, 0, wx.LEFT, 5)
         hor_sizer.Add(self.select_btn, 0, wx.LEFT, 5)
 
+        bottom_left.Add(self.delay_bar, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
+        bottom_left.Add(self.reserved_action, 0, wx.LEFT, 3)
+
         left_sizer.Add(hor_sizer)
         left_sizer.AddSpacer(2)
         left_sizer.Add(self.name, 0, wx.LEFT, 5)
         left_sizer.AddSpacer(2)
-        left_sizer.Add(self.delay_bar, 0, wx.LEFT, 5)
+        left_sizer.Add(bottom_left)
 
         main_sizer.Add(left_sizer, 0, wx.RIGHT, 10)
 
@@ -2608,6 +2696,10 @@ class Icon(wx.Panel):
 
         if delay_max == 0:
             self.delay_bar.SetBarColour(wx.GREEN)
+
+        elif self.has_reserved_action:
+            self.delay_bar.SetBarColour('#FFFFFF')
+
         elif 0 < delay_max <= 3:
             self.delay_bar.SetBarColour('#FF6600')
         else:
@@ -2625,6 +2717,24 @@ class Icon(wx.Panel):
 
         self.number.SetLabel(str(self.o_id))
         self.name.SetLabel(obj['name'])
+
+        self.delay_bar.Refresh()
+
+    def set_reserved_action(self, action):
+        self.has_reserved_action = action
+        
+        if action:
+            self.delay_bar.SetBarColour('#FFFFFF')
+            if action == 'fight':
+                bmp = self.all_graphics['icon_shoot_dist']
+            elif action == 'move':
+                bmp = self.all_graphics['icon_walk_dist']
+
+            self.reserved_action.SetBitmap(bmp)
+
+        else:
+            self.delay_bar.SetBarColour(colors[2])
+            self.reserved_action.SetBitmap(self.all_graphics['unknown_icon'])
 
         self.delay_bar.Refresh()
 

@@ -83,8 +83,10 @@ class TransporterPage(wiz.WizardPageSimple):
 
 class SectorPage(wiz.WizardPageSimple):
 
-    def __init__(self, parent, sectors, current_sector, walk_dist=0):
+    def __init__(self, parent, sectors, current_sector, walk_dist=0, selected_ids=False):
         wiz.WizardPageSimple.__init__(self, parent)
+
+        self.selected_ids = selected_ids
 
         self.walk_dist = wx.StaticText(self, -1, str(walk_dist))
         self.walk_dist.SetFont(wx.Font(25, wx.SWISS, wx.NORMAL, wx.NORMAL))
@@ -100,7 +102,12 @@ class SectorPage(wiz.WizardPageSimple):
         self.DoLayout()
 
     def DoLayout(self):
-        self.sizer = makePageTitle(self, 'Move Units')
+        title = 'Move Units'
+
+        if self.selected_ids:
+            title += ': ' + ', '.join(map(lambda x: str(x), self.selected_ids))
+
+        self.sizer = makePageTitle(self, title)
 
         main = wx.BoxSizer(wx.HORIZONTAL)
         left = wx.BoxSizer(wx.VERTICAL)
@@ -140,28 +147,40 @@ class BuildingPage(wiz.WizardPageSimple):
 
 class EnemyPage(wiz.WizardPageSimple):
 
-    def __init__(self, parent, enemy_groups, select_ids=False, sector=False):
+    def __init__(self, parent, enemy_groups, select_ids=False, sector=False, selected_ids = False):
         '''Select enemy.
         Optional:
         choose ids of selected enemy,
         limit ids to specific sector
         '''
+
+        wiz.WizardPageSimple.__init__(self, parent)
         self.sector = sector
         self.enemy_groups = enemy_groups
         self.select_ids = select_ids
-        wiz.WizardPageSimple.__init__(self, parent)
-        self.sizer = makePageTitle(self, 'Select Enemy')
-        self.sizer.Add(wx.StaticText(self, -1, """
-            Choose the enemy player you are targeting."""))
+        self.selected_ids = selected_ids
         self.select_enemy = wx.ComboBox(self, choices=enemy_groups.keys(), style=wx.CB_READONLY,)
-        self.sizer.Add(self.select_enemy)
 
         if select_ids:
-            self.sizer.Add(wx.StaticText(self, -1, """
-            Which IDs are you targeting?"""))
             self.select_groups = wx.ListBox(self, -1, style=wx.LB_MULTIPLE, size = (50, 200))
-            self.sizer.Add(self.select_groups)
             self.select_enemy.Bind(wx.EVT_COMBOBOX, self.enemy_selected)
+
+        self.DoLayout()
+
+    def DoLayout(self):
+        title = 'Select Enemy'
+        if self.selected_ids:
+            title += ' for ' + ', '.join(map(lambda x: str(x), self.selected_ids))
+
+        self.sizer = makePageTitle(self, title)
+        self.sizer.Add(wx.StaticText(self, -1, """
+            Choose the enemy player you are targeting."""))
+        self.sizer.Add(self.select_enemy)
+
+        if hasattr(self, 'select_groups'):
+            self.sizer.Add(wx.StaticText(self, -1, """
+                Which IDs are you targeting?"""))
+            self.sizer.Add(self.select_groups)
 
     def enemy_selected(self, evt):
         enemy = self.select_enemy.GetStringSelection()
@@ -242,7 +261,7 @@ class ActionWizard(wiz.Wizard):
                 sel['buildings'].append(ind)
 
         if action_type == 'fight':
-            pages.append(EnemyPage(self, self.enemy_groups, select_ids=True))
+            pages.append(EnemyPage(self, self.enemy_groups, select_ids=True, selected_ids = self.selected_ids))
             pages.append(DistancePage(self))
             params = show_wizard(pages)
 
@@ -262,11 +281,11 @@ class ActionWizard(wiz.Wizard):
                 elif indx in self.transporter.keys():
                     wd.append(self.transporter[indx]['parameters']['walk_dist'])
                 elif indx in self.buildings.keys():
-                    wd.append(self.buildings[indx]['parameters']['walk_dist'])
+                    wd.append(0)
 
             walk_dist = min(wd)
             
-            pages.append(SectorPage(self, self.sectors, current_sector, walk_dist))
+            pages.append(SectorPage(self, self.sectors, current_sector, walk_dist, self.selected_ids))
             params = show_wizard(pages)
             if params:
                 self.connection.Send(
@@ -394,7 +413,6 @@ class ActionWizard(wiz.Wizard):
                     selection = in_building
                 else:
                     selection = False
-                print
                 pages.append(OwnPage(self, self.groups, self.transporter,
                              self.buildings, sector=False, selection=selection))
 

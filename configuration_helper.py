@@ -13,11 +13,11 @@ class ConfigurationHelper(wx.Dialog):
         self.scroll_panel = scrolled.ScrolledPanel(
             self, -1, size=(1300, 670))
 
-        if filename:
-            self.game_parameters = pickle.load(open(filename, "rb"))
-
-        elif game_parameters:
+        if game_parameters:
             self.game_parameters = game_parameters
+
+        elif filename:
+            self.game_parameters = pickle.load(open(filename, "rb"))
 
         else:
             # All game engine parameters

@@ -94,8 +94,7 @@ class MapWarfare:
 
         self.players[
             nickname] = {'hq_sector': hq_sector, 'account': par['engine_parameters']['start_account'],
-                         'groups': {}, 'transporter': {}, 'buildings': {}, 'cards': {}, 'victory_points': 0,
-                         'player_num': self.num_players}
+                         'groups': {}, 'transporter': {}, 'buildings': {}, 'cards': {}, 'victory_points': 0}
 
         self.current_id[nickname] = 0
 
@@ -103,11 +102,13 @@ class MapWarfare:
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
 
         # Add extra units to start off...
+        '''
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
         self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
         self.new_player('punch_me', 10)
-
+        '''
+        
         title = 'Hi {0}!'.format(nickname)
         message_parts = ['F1 to F10 are shortcuts to the actions']
         message_parts.append('F1: Move, F2: Fight, ...')
@@ -971,20 +972,22 @@ class MapWarfare:
                 self.players[nickname]['transporter'][o_id]['delay'] = delay
 
         else:
-            found = False
-            for unit in pl['groups'][o_id]['units'].values():
-                if unit['delay'] > 0:
-                    found = True
-                    break
+            if pl['groups'][o_id]['transporter'] == -1:
 
-            if not found:
-                moved = True
-                pl['groups'][o_id]['sector'] = sector
-                g = self.players[nickname]['groups'][o_id]
-                # apply walk delay to all units
-                for u_id, unit in g['units'].items():
-                    self.players[nickname]['groups'][o_id]['units'][
-                        u_id]['delay'] = unit['parameters']['delay_walk']
+                found = False
+                for unit in pl['groups'][o_id]['units'].values():
+                    if unit['delay'] > 0 or unit['building'] != -1 or unit['protected']:
+                        found = True
+                        break
+
+                if not found:
+                    moved = True
+                    pl['groups'][o_id]['sector'] = sector
+                    g = self.players[nickname]['groups'][o_id]
+                    # apply walk delay to all units
+                    for u_id, unit in g['units'].items():
+                        self.players[nickname]['groups'][o_id]['units'][
+                            u_id]['delay'] = unit['parameters']['delay_walk']
 
         # if moved check:
         # if player has now more than "take_over_factor" times life in the

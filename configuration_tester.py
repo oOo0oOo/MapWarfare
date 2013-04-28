@@ -110,15 +110,21 @@ class FightTester(wx.Dialog):
                     if upgrade in game.players['b']['groups'][1]['units'][u_id]['parameters']['actions'].keys():
                         game.perform_unit_action('b', upgrade, 1, u_id)
 
-        # ids are one because of headquarters, distance is 5
+        # ids are one because of headquarters
         game.fight({'a': [1]}, {'b': [1]}, distance)
 
+        print game.players['a']
+        print game.players['a']['groups']
+        print game.players['a']['groups'][1]
+        print game.players['a']['groups'][1]['units']
+        
         res = '\nFIGHT\n\nGroup 1 lifes:\n'
         try:
             for unit in game.players['a']['groups'][1]['units'].values():
                 u_p = unit['parameters']
                 res += ' -life: {0}/{1}, shield: {2}\n'.format(
                     u_p['life'], u_p['max_life'], u_p['shield'])
+
         except KeyError:
             res += 'all dead\n'
 
@@ -149,8 +155,7 @@ class FightTester(wx.Dialog):
             try:
                 for unit in game.players['a']['groups'][1]['units'].values():
                     u_p = unit['parameters']
-                    res += ' -life: {0}/{1}, shield: {2}\n'.format(
-                        u_p['life'], u_p['max_life'], u_p['shield'])
+                    res += ' -life: {0}/{1}, shield: {2}\n'.format(u_p['life'], u_p['max_life'], u_p['shield'])
             except KeyError:
                 res += 'all dead\n'
 

@@ -28,7 +28,7 @@ class MapWarfareClient(ConnectionListener):
         connection.Send(
             {"action": "register", "nickname": nickname, 'sector': sector})
         self.wx_app = wx.App(
-            # redirect=True, filename="client_crash_log.txt"
+            redirect=True, filename="client_crash_log.txt"
         )
         self.init_user_interface()
 
