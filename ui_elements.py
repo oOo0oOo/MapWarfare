@@ -480,14 +480,15 @@ class Header(wx.Panel):
                 main_sizer.AddSpacer(15)
             
             if param == 'sectors':
-                d = 330
-            elif param == 'ticks':
-                d = 35
+                main_sizer.Add(self.displayed[param], 0, wx.RIGHT, 330)
             else:
-                d = 100
-
-            main_sizer.Add(self.displayed[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, d)
-
+                if param == 'ticks':
+                    d = 35
+                else:
+                    d = 100
+                    
+                main_sizer.Add(self.displayed[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, d)
+                
         main_sizer.Add(self.victory, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
         main_sizer.Add(self.play_button, 0, wx.ALIGN_CENTER_VERTICAL)
 
@@ -521,8 +522,20 @@ class Header(wx.Panel):
                 self.victory.Refresh()
 
             elif param == 'sectors':
-                disp = ', '.join(map(lambda x: str(x), value))
-                disp += '  (#: {})'.format(len(value))
+                sectors = value
+                sectors_per_line = 10
+                num_sectors = len(sectors)
+                lines = []
+                while sectors:
+                    if len(sectors) < sectors_per_line:
+                        stop = len(sectors)
+                    else:
+                        stop = sectors_per_line
+
+                    lines.append(', '.join(map(lambda x: str(x), sectors[:stop])))
+                    del sectors[:stop]
+
+                disp = '\n'.join(lines) + '  (#: {})'.format(num_sectors)
                 self.displayed[param].SetLabel(disp)
 
             elif param == 'account':

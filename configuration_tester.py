@@ -94,9 +94,11 @@ class FightTester(wx.Dialog):
         game = engine.MapWarfare(self.game_parameters)
         game.new_player('a', 1)
         game.new_player('b', 2)
+        game.players['a']['account'] = 100000
+        game.players['b']['account'] = 100000
 
-        game.new_group('a', group1, 1)
-        game.new_group('b', group2, 1)
+        game.new_group('a', group1, 1, costs=False)
+        game.new_group('b', group2, 1, costs=False)
 
         if self.current_upgrades_1:
             for upgrade in self.current_upgrades_1:
@@ -112,11 +114,6 @@ class FightTester(wx.Dialog):
 
         # ids are one because of headquarters
         game.fight({'a': [1]}, {'b': [1]}, distance)
-
-        print game.players['a']
-        print game.players['a']['groups']
-        print game.players['a']['groups'][1]
-        print game.players['a']['groups'][1]['units']
         
         res = '\nFIGHT\n\nGroup 1 lifes:\n'
         try:
