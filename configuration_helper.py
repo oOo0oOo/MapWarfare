@@ -2,6 +2,7 @@ import wx
 import time
 import os
 import pickle
+from copy import deepcopy
 import wx.lib.scrolledpanel as scrolled
 from configuration_tester import FightTester as Tester
 
@@ -14,7 +15,7 @@ class ConfigurationHelper(wx.Dialog):
             self, -1, size=(1300, 670))
 
         if game_parameters:
-            self.game_parameters = game_parameters
+            self.game_parameters = deepcopy(game_parameters)
 
         elif filename:
             self.game_parameters = pickle.load(open(filename, "rb"))
