@@ -486,7 +486,7 @@ class Header(wx.Panel):
                     d = 35
                 else:
                     d = 100
-                    
+
                 main_sizer.Add(self.displayed[param], 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, d)
                 
         main_sizer.Add(self.victory, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
@@ -2078,7 +2078,7 @@ class ObjSummary(wx.Panel):
         self.o_id = o_id
         self.obj = obj
         self.is_building = is_building
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+
 
         if self.is_building:
             start = 'building_'
@@ -2096,26 +2096,16 @@ class ObjSummary(wx.Panel):
         except KeyError:
             elite_bmp = all_graphics['rank_8']
 
-        # Sizers
-        self.top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.top_left_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.top_left_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
+        self.unit_bmp = unit_bmp
+        self.elite_bmp = elite_bmp
+        
         name = obj['parameters']['name'] + ' ' + obj['name']
-        name_label = wx.StaticText(self, -1, name)
-        name_label.SetFont(fonts['small'])
-
-        self.top_left_sizer.Add(name_label, 0, wx.TOP | wx.BOTTOM, 10)
-
-        self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, unit_bmp))
-        self.top_left_bottom_sizer.AddSpacer(10)
-        self.top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, elite_bmp))
-
-        self.top_left_sizer.Add(self.top_left_bottom_sizer)
-        self.top_sizer.Add(self.top_left_sizer)
+        self.name_label = wx.StaticText(self, -1, name)
+        self.name_label.SetFont(fonts['small'])
 
         # Parse Units
         current_in = obj['current']
+
         if self.is_building:
             if len(current_in) > 0:
                 groups = {}
@@ -2130,6 +2120,10 @@ class ObjSummary(wx.Panel):
                     current += ' ' + str(g_id) + ': ' + str(len(u_ids)) + 'x'
             else:
                 current = 'No units in building'
+            num_in = len(current_in)
+            capacity = '{0}/{1}'.format(len(current_in), int(obj['parameters']['capacity']))
+            wd = 'none'
+
         else:
             if len(current_in) > 0:
                 cur = [str(c) for c in current_in]
@@ -2137,16 +2131,14 @@ class ObjSummary(wx.Panel):
                 current = 'Groups: ' + groups
             else:
                 current = 'No groups transported'
+            capacity = 'max %i'%(obj['parameters']['capacity'])
+            wd = str(int(obj['parameters']['walk_dist']))
 
         self.current = wx.StaticText(self, -1, current)
         self.current.SetFont(fonts['small'])
         self.current.SetForegroundColour(colors[3])
 
         # display all parameters
-        try:
-            wd = str(int(obj['parameters']['walk_dist']))
-        except KeyError:
-            wd = '0'
 
         o_p = obj['parameters']
         params = [(
@@ -2156,8 +2148,7 @@ class ObjSummary(wx.Panel):
             ('walk_dist', wd),
             ('attack', '{0}-{1}'.format(int(o_p['attack_min']), int(o_p['attack_max']))),
             ('delay', str(int(obj['delay']))),
-            ('capacity', '{0}/{1}'.format(
-             len(current_in), int(o_p['capacity'])))
+            ('capacity', capacity)
         ]
 
         self.params_sizer = wx.FlexGridSizer(3, 5)
@@ -2242,7 +2233,7 @@ class ObjSummary(wx.Panel):
 
         # shortcuts (action categories)
         self.shortcuts = {}
-        shortcut_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.shortcut_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         for sh in ['upgrade', 'shop', 'equipment']:
             if len(self.collected_actions[sh]) > 0:
@@ -2252,24 +2243,38 @@ class ObjSummary(wx.Panel):
                     style=wx.BORDER_NONE, name=sh)
                 self.shortcuts[sh].Bind(wx.EVT_BUTTON, self.on_action_category)
 
-                shortcut_sizer.Add(self.shortcuts[sh], 0, wx.LEFT, 10)
+                self.shortcut_sizer.Add(self.shortcuts[sh], 0, wx.LEFT, 10)
+
+        self.DoLayout()
+
+    def DoLayout(self):
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_left_sizer = wx.BoxSizer(wx.VERTICAL)
+        top_left_bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_left_sizer.Add(self.name_label, 0, wx.TOP | wx.BOTTOM, 10)
+
+        top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, self.unit_bmp))
+        top_left_bottom_sizer.AddSpacer(10)
+        top_left_bottom_sizer.Add(wx.StaticBitmap(self, -1, self.elite_bmp))
+
+        top_left_sizer.Add(top_left_bottom_sizer)
+        top_sizer.Add(top_left_sizer)
 
         self.action_sizer.AddSpacer(10)
-        self.action_sizer.Add(shortcut_sizer)
-
+        self.action_sizer.Add(self.shortcut_sizer)
         self.action_panel.SetSizer(self.action_sizer)
-
         self.action_panel.SetupScrolling(False, True)
 
-        self.main_sizer.Add(self.top_sizer)
-        self.main_sizer.AddSpacer(10)
-        self.main_sizer.Add(self.current)
-        self.main_sizer.AddSpacer(10)
-        self.main_sizer.Add(self.params_sizer)
-        self.main_sizer.AddSpacer(15)
-        self.main_sizer.Add(self.action_panel)
+        main_sizer.Add(top_sizer)
+        main_sizer.AddSpacer(10)
+        main_sizer.Add(self.current)
+        main_sizer.AddSpacer(10)
+        main_sizer.Add(self.params_sizer)
+        main_sizer.AddSpacer(15)
+        main_sizer.Add(self.action_panel)
 
-        self.SetSizer(self.main_sizer)
+        self.SetSizer(main_sizer)
 
         self.Show(True)
 
