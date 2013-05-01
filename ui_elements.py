@@ -631,13 +631,13 @@ class BottomPanel(wx.Panel):
         some_protected = False
         some_not_protected = False
         some_transported = False
-        some_not_transported = False
 
         protect = False
         unprotect = False
         enter_building = False
         exit_building = False
         exit_transporter = False
+        enter_transporter = False
 
         num_units = 0
         unit_types = []
@@ -651,7 +651,6 @@ class BottomPanel(wx.Panel):
                     some_transported = True
                     exit_transporter = True
                 elif self.game_obj['groups'][new_id]['transporter'] == -1 and exit_transporter == True:
-                    some_not_transported = True
                     exit_transporter = False
 
                 for u_id, unit in self.game_obj['groups'][new_id]['units'].items():
@@ -671,6 +670,9 @@ class BottomPanel(wx.Panel):
                     if unit['delay'] != 0:
                         some_delayed = True
                     else:
+                        if self.game_obj['groups'][new_id]['transporter'] == -1:
+                            enter_transporter = True
+
                         some_not_delayed = True
 
                     if unit['building'] != -1:
@@ -733,7 +735,7 @@ class BottomPanel(wx.Panel):
             # only unique unit types
             unit_types = list(set(unit_types))
 
-            if not some_protected and not some_delayed and not some_in_building and not exit_transporter:
+            if not some_protected and not some_in_building and not exit_transporter and enter_transporter:
                 # check if transporter transports the right type
                 # check if transporter has enough capacity
                 trans = self.game_obj['transporter'][sel['transporter'][0]]
