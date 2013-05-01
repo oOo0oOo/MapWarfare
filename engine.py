@@ -891,7 +891,6 @@ class MapWarfare:
     def load_transporter(self, nickname, g_id, t_id):
         group = self.players[nickname]['groups'][g_id]
         trans = self.players[nickname]['transporter'][t_id]
-        
 
         # Check if transporter has enough capacity
         num_units = len(group['units'].keys())
@@ -993,38 +992,55 @@ class MapWarfare:
         # if player has now more than "take_over_factor" times life in the
         # sector
         if moved:
-            current = self.sectors[sector]
-            if current and current != nickname:
-                # how much life does player and current owner have in sector
-                total_life = {}
-                for player in (nickname, current):
-                    total_life[player] = 0
-                    pl = self.players[player]
-                    for group in pl['groups'].values():
-                        if group['sector'] == sector:
-                            for unit in group['units'].values():
-                                total_life[
-                                    player] += unit['parameters']['life']
-                    for o_type in ('transporter', 'buildings'):
-                        for obj in pl[o_type].values():
-                            if obj['sector'] == sector:
-                                total_life[player] += obj['parameters']['life']
+            self.check_sectors([sector])
 
-                eng_par = self.game_parameters['engine_parameters']
+    def check_sectors(self, sectors = []):
+        
+        eng_par = self.game_parameters['engine_parameters']
+        
+        if not sectors:
+            sectors = self.sectors.keys()
+
+        for sector in sectors:
+            # get the life of all players in this sector
+            max_life = 0
+            current = self.sectors[sector]
+            
+            # how much life does player and current owner have in sector
+            total_life = {}
+            for player in self.players.keys():
+                total_life[player] = 0
+                pl = self.players[player]
+                for group in pl['groups'].values():
+                    if group['sector'] == sector:
+                        for unit in group['units'].values():
+                            total_life[
+                                player] += unit['parameters']['life']
+                for o_type in ('transporter', 'buildings'):
+                    for obj in pl[o_type].values():
+                        if obj['sector'] == sector:
+                            total_life[player] += obj['parameters']['life']
+            
+            if total_life:
+                max_life = max(total_life.values())
+                player = [p for p, val in total_life.items() if val == max_life][0]
 
                 # takeover factor scales life required
-                required = total_life[current] * eng_par['take_over_factor']
+                if current:
+                    if current != player:
+                        required = total_life[current] * eng_par['take_over_factor']
 
-                if required <= total_life[nickname]:
-                    # Give take over reward scaled to value of sector
-                    reward = round(eng_par['sector_takeover']
-                                   * eng_par['all_sectors'][sector]['weight'], 0)
-                    self.players[nickname]['account'] += reward
-                    # current possessor ==> take over the sector from player
-                    self.sectors[sector] = nickname
+                        if required <= total_life[player]:
+                            # Give take over reward scaled to value of sector
+                            reward = round(eng_par['sector_takeover']
+                                           * eng_par['all_sectors'][sector]['weight'], 0)
+                            self.players[player]['account'] += reward
+                            # current possessor ==> take over the sector from player
+                            self.sectors[sector] = player
 
-            elif not current:
-                self.sectors[sector] = nickname
+                elif not current:
+                    self.sectors[sector] = player
+
 
     def on_tick(self):
         '''This function performs all the updates initiated by a tick.'''
@@ -1387,6 +1403,9 @@ class MapWarfare:
                 obj = self.players[ad[1]][ad[2]][ad[3]]
                 obj = self.players[ad[1]][ad[2]][ad[3]][
                     'delay'] = obj['parameters']['delay_shoot']
+
+        # Check all sectors (could be changed only involved sectors)
+        self.check_sectors()
 
         # Pretty print surviving units (can be returned to player)
         units = {'starters': [], 'enemies': []}
