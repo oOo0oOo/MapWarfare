@@ -51,7 +51,7 @@ def generate_random_name():
       name += random.choice(syllables['part3'])
 
       #Some rules for nicer names
-      
+
       #No doubles
       char = ['i', 'u', 'e', 'h', 'r']
 
@@ -891,18 +891,18 @@ class MapWarfare:
     def load_transporter(self, nickname, g_id, t_id):
         group = self.players[nickname]['groups'][g_id]
         trans = self.players[nickname]['transporter'][t_id]
+        
 
         # Check if transporter has enough capacity
         num_units = len(group['units'].keys())
         num_in_transporter = 0
-        for group in trans['current']:
-            num_in_transporter += len(
-                self.players[nickname]['groups'][group]['units'])
+        for g in trans['current']:
+            num_in_transporter += len(self.players[nickname]['groups'][g]['units'])
 
         if num_units <= trans['parameters']['capacity'] - num_in_transporter:
             # Check if all units in group can be transported with transporter
             found = False
-            for u_id, unit in group['units'].items():
+            for unit in group['units'].values():
                 if unit['parameters']['unit_type'] != trans['parameters']['transports']:
                     found = True
                     break
