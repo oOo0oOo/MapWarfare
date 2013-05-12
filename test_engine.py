@@ -127,7 +127,24 @@ class TestSimpleActions(unittest.TestCase):
         print 'Implement Test: Healing/Doctor'
 
     def test_action_player(self):
-        print 'Implement Test: Action on Player (e.g. name, account)'
+        tests = [
+                ('account', 100),
+                ('victory_points', 10),
+                ('account', 99.0),
+                ('victory_points', 10.0),
+                ]
+
+        for param, value in tests:
+            game = self.construct_game()
+            selection = {'own_selection': False, 'enemy': 'b', 'enemy_selection': False}
+            action = {'type': 'change', 'target': 'own', 'level': 'player', 'random': 0, 
+                    'selection': selection, 'changes': {param: value}}
+
+            param_before = game.players['a'][param]
+            s = game.perform_action('a', action)
+            self.assertTrue(s)
+            self.assertEqual(game.players['a'][param], param_before + value)
+
 
     def test_change_normal(self):
         test_changes = [{'attack_min': 100, 'attack_max': -10},
