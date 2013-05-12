@@ -2427,8 +2427,8 @@ class Icon(wx.Panel):
         hor_sizer.Add(self.number, 0, wx.LEFT, 5)
         hor_sizer.Add(self.select_btn, 0, wx.LEFT, 5)
 
-        bottom_left.Add(self.delay_bar, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 5)
-        bottom_left.Add(self.reserved_action, 0, wx.LEFT, 3)
+        bottom_left.Add(self.reserved_action, 0, wx.LEFT, 5)
+        bottom_left.Add(self.delay_bar, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 3)
 
         left_sizer.Add(hor_sizer)
         left_sizer.AddSpacer(2)
