@@ -102,14 +102,16 @@ class MapWarfare:
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
 
         # Add extra units to start off...
+        '''
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
         self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
 
-        self.new_building(nickname, 6, hq_sector, 'MG Nest', False)    
+        self.new_transporter(nickname, 1, hq_sector, 'Heli', False)    
 
         # Stuff when playing alone
         self.new_player('punch_me', 10) 
+        '''
 
         title = 'Hi {0}!'.format(nickname)
         message_parts = ['F1 to F10 are shortcuts to the actions']
@@ -439,6 +441,11 @@ class MapWarfare:
 
         elif action['type'] == 'change':
             if action['level'] == 'player':
+                if action['target'] == 'own':
+                    player = nickname
+                else:
+                    player = selection['enemy']
+
                 collected_changes = {}
                 for param, change in action['changes'].items():
                     if param == 'name':
@@ -912,8 +919,10 @@ class MapWarfare:
                 # if unit is transported it will not be able to move and defend
                 # itself
             if not found:
-                self.players[nickname]['transporter'][
-                    t_id]['delay'] = trans['parameters']['delay_in']
+                disable = trans['parameters']['delay_in']
+                if trans['delay'] < disable:
+                    self.players[nickname]['transporter'][t_id]['delay'] = disable
+                
                 self.players[nickname]['transporter'][
                     t_id]['current'].append(g_id)
 
@@ -936,7 +945,9 @@ class MapWarfare:
         if t_id != -1:
             trans = self.players[nickname]['transporter'][t_id]
             disable = trans['parameters']['delay_out']
-            self.players[nickname]['transporter'][t_id]['delay'] = disable
+            delay = self.players[nickname]['transporter'][t_id]['delay']
+            if delay < disable:
+                self.players[nickname]['transporter'][t_id]['delay'] = disable
 
             self.players[nickname]['transporter'][t_id]['current'].remove(g_id)
             self.players[nickname]['groups'][g_id]['transporter'] = -1
