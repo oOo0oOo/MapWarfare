@@ -364,8 +364,7 @@ class MainFrame(wx.Frame):
                                 break
 
                 elif o_id in g_o['transporter'].keys():
-                    o = g_o['transporter'][o_id]
-                    if u['delay'] > 0 or u['protected']:
+                    if g_o['transporter'][o_id]['delay'] > 0:
                         found = True
 
                 if not found:
