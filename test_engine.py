@@ -10,8 +10,9 @@ game_parameters = pickle.load(open(filepath, "rb"))
 
 
 class TestBasicFunctions(unittest.TestCase):
+
     def test_player_creation(self):
-        tests = ['uuu', 'alllll', 'All']
+        tests = ['uuu', 'alllll', 'All', '00', 'oo']
 
         for name in tests:
             game = engine.MapWarfare(game_parameters)
@@ -64,6 +65,7 @@ class TestBasicFunctions(unittest.TestCase):
 
 
 class TestMoveIntoSector(unittest.TestCase):
+
     def test_single_move_group(self):
 
         test_groups = [[0, 0, 0], [0], [0, 1], [1, 1, 1, 1, 1, 1]]
@@ -100,6 +102,7 @@ class TestMoveIntoSector(unittest.TestCase):
 
 
 class TestSimpleActions(unittest.TestCase):
+
     def test_group_creation(self):
         time.sleep(0.01)
         test_groups = [
@@ -128,31 +131,34 @@ class TestSimpleActions(unittest.TestCase):
 
     def test_action_player(self):
         tests = [
-                ('account', 100),
-                ('victory_points', 10),
-                ('account', 99.0),
-                ('victory_points', 10.0),
-                ]
+            ('account', 100),
+            ('victory_points', 10),
+            ('account', 99.0),
+            ('victory_points', 10.0),
+        ]
 
         for param, value in tests:
             game = self.construct_game()
-            selection = {'own_selection': False, 'enemy': 'b', 'enemy_selection': False}
-            action = {'type': 'change', 'target': 'own', 'level': 'player', 'random': 0, 
-                    'selection': selection, 'changes': {param: value}}
+            selection = {
+                'own_selection': False, 'enemy': 'b', 'enemy_selection': False}
+            action = {
+                'type': 'change', 'target': 'own', 'level': 'player', 'random': 0,
+                'selection': selection, 'changes': {param: value}}
 
             param_before = game.players['a'][param]
             s = game.perform_action('a', action)
             self.assertTrue(s)
             self.assertEqual(game.players['a'][param], param_before + value)
 
-
     def test_change_normal(self):
         test_changes = [{'attack_min': 100, 'attack_max': -10},
                         {'max_life': 100, 'attack_max': -2, 'life': 50},
                         {'elite': 1, 'delay_shoot': -3, 'delay_walk': -2},
                         {'attack_max': 20, 'attack_min': 10, 'num_enemies': 3, 'life': -10, 'shoot_dist': 10,
-                            'walk_dist': 13, 'delay_shoot': 10, 'delay_walk': 10, 'elite': 0}
-
+                            'walk_dist': 13, 'delay_shoot': 10, 'delay_walk': 10, 'elite': 0},
+                        {'shield_factor': 0.113453626, 'attack_max': -1, 'attack_min': -1, 
+                            'num_enemies': -1, 'life': -1, 'shoot_dist': -1,
+                            'walk_dist': -1, 'delay_shoot': -2, 'delay_walk': -2}
                         ]
 
         selection = {'own_selection': [(1, 0), (1, 1), (1, 2)],
