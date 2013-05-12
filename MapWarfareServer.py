@@ -1,6 +1,6 @@
 from time import sleep, asctime, time
 from weakref import WeakKeyDictionary
-import wx, socket
+import wx, socket, os
 from configuration_helper import ConfigurationHelper
 
 from PodSixNet.Server import Server
@@ -16,6 +16,10 @@ class ServerUI(wx.Frame):
 
     def __init__(self, current_tick=25):
         super(ServerUI, self).__init__(None, -1, 'Uster Wars Server', size=(400, 300))
+
+        self.load_flag = False
+        self.save_flag = False
+
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         # Title
         self.main_sizer.Add(wx.StaticText(self, -1, 'Uster Wars Server'))
@@ -45,14 +49,21 @@ class ServerUI(wx.Frame):
         self.change_duration_btn = wx.Button(self, -1, 'Change Duration')
         self.Bind(wx.EVT_BUTTON, self.change_duration, self.change_duration_btn)
 
+        self.save_btn = wx.Button(self, -1, 'Save Game')
+        self.load_btn = wx.Button(self, -1, 'Load Game')
+        self.save_btn.Bind(wx.EVT_BUTTON, self.OnSave)
+        self.load_btn.Bind(wx.EVT_BUTTON, self.OnLoad)
+
         self.hor_sizer.Add(self.manual_entry)
         self.hor_sizer.AddSpacer(10)
         self.hor_sizer.Add(self.change_duration_btn)
 
         self.duration_sizer.Add(self.hor_sizer)
         self.play_sizer.Add(self.duration_sizer)
-        self.main_sizer.Add(self.play_sizer)
 
+        self.main_sizer.Add(self.play_sizer)
+        self.main_sizer.Add(self.save_btn, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 8)
+        self.main_sizer.Add(self.load_btn, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 8)
         self.SetSizer(self.main_sizer)
 
         self.duration_flag = False
@@ -70,6 +81,20 @@ class ServerUI(wx.Frame):
 
     def on_slide(self, evt):
         self.manual_entry.SetValue(str(self.slider.GetValue()))
+
+    def OnSave(self, evt):
+        dlg = wx.FileDialog(self, 'Choose a filename', '', '', '*.game', wx.SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetFilename()
+            dirname = dlg.GetDirectory()
+            self.save_flag = os.path.join(dirname, filename)
+
+    def OnLoad(self, evt):
+        dlg = wx.FileDialog(self, 'Choose a file', '', '', '*.game', wx.SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetFilename()
+            dirname = dlg.GetDirectory()
+            self.load_flag = os.path.join(dirname, filename)
 
 
 class ClientChannel(Channel):
@@ -454,6 +479,15 @@ class MapWarfareServer(Server):
             if self.frame.duration_flag:
                 self.tick_duration = self.frame.duration_flag
                 self.frame.duration_flag = False
+
+            # check if save or load was triggered:
+            if self.frame.load_flag:
+                self.game.load_game(self.frame.load_flag)
+                self.frame.load_flag = False
+
+            if self.frame.save_flag:
+                self.game.save_game(self.frame.save_flag)
+                self.frame.save_flag = False
 
             # check if play pause was changed
             pl = self.frame.play_flag

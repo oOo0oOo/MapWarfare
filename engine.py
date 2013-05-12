@@ -1,5 +1,6 @@
 import random
 import copy
+import pickle
 from collections import Counter as count
 from collections import defaultdict
 
@@ -72,11 +73,18 @@ class MapWarfare:
         self.ticks = 1
         self.num_players = 0
 
-        # The id is used as a unique identifier of groups, buildings and
-        self.current_id = {}
-
         for sector in self.game_parameters['engine_parameters']['all_sectors'].keys():
             self.sectors[sector] = False
+
+    def save_game(self, filepath = 'MapWarfare.game'):
+        all_params = (self.players, self.game_parameters, self.sectors, self.ticks)
+        #self.game_parameters = pickle.load(open(filename, "rb"))
+        pickle.dump(all_params, open(filepath, "wb"))
+
+    def load_game(self, filepath = ''):
+        if filepath:
+            params = pickle.load(open(filepath, "rb"))
+            self.players, self.game_parameters, self.sectors, self.ticks = params
 
     def new_player(self, nickname, hq_sector):
         # Check if nickname is not taken
@@ -95,8 +103,6 @@ class MapWarfare:
         self.players[
             nickname] = {'hq_sector': hq_sector, 'account': par['engine_parameters']['start_account'],
                          'groups': {}, 'transporter': {}, 'buildings': {}, 'cards': {}, 'victory_points': 0}
-
-        self.current_id[nickname] = 0
 
         # Create home base (building #0), this is used by tests
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
