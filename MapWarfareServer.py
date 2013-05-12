@@ -19,55 +19,50 @@ class ServerUI(wx.Frame):
 
         self.load_flag = False
         self.save_flag = False
-
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        # Title
-        self.main_sizer.Add(wx.StaticText(self, -1, 'Uster Wars Server'))
-        self.main_sizer.AddSpacer(10)
-
-        self.play_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.duration_flag = False
+        self.play_flag = False
 
         self.play_btn = wx.ToggleButton(self, -1, 'Run Ticks', size=(80, 100))
-        self.Bind(wx.EVT_TOGGLEBUTTON, self.play_pause, self.play_btn)
-        self.play_sizer.Add(self.play_btn)
-        self.play_sizer.AddSpacer(10)
-
-        self.duration_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        self.duration_sizer.Add(wx.StaticText(self, -1, 'Tick Duration (s):'))
+        self.play_btn.Bind(wx.EVT_TOGGLEBUTTON, self.play_pause)
 
         self.slider = wx.Slider(self, 600, current_tick, 3, 600, (30, 60), (250, -1),
                                 wx.SL_HORIZONTAL | wx.SL_LABELS)
-
         self.slider.Bind(wx.EVT_SLIDER, self.on_slide)
-
-        self.duration_sizer.Add(self.slider)
-
-        self.hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
         self.manual_entry = wx.TextCtrl(self, -1, str(current_tick))
         self.change_duration_btn = wx.Button(self, -1, 'Change Duration')
-        self.Bind(wx.EVT_BUTTON, self.change_duration, self.change_duration_btn)
+        self.change_duration_btn.Bind(wx.EVT_BUTTON, self.change_duration)
 
         self.save_btn = wx.Button(self, -1, 'Save Game')
         self.load_btn = wx.Button(self, -1, 'Load Game')
         self.save_btn.Bind(wx.EVT_BUTTON, self.OnSave)
         self.load_btn.Bind(wx.EVT_BUTTON, self.OnLoad)
 
-        self.hor_sizer.Add(self.manual_entry)
-        self.hor_sizer.AddSpacer(10)
-        self.hor_sizer.Add(self.change_duration_btn)
+        self.DoLayout()
 
-        self.duration_sizer.Add(self.hor_sizer)
-        self.play_sizer.Add(self.duration_sizer)
+    def DoLayout(self):
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        play_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        duration_sizer = wx.BoxSizer(wx.VERTICAL)
+        hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.main_sizer.Add(self.play_sizer)
-        self.main_sizer.Add(self.save_btn, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 8)
-        self.main_sizer.Add(self.load_btn, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 8)
-        self.SetSizer(self.main_sizer)
+        main_sizer.Add(wx.StaticText(self, -1, 'Uster Wars Server'), 0, wx.BOTTOM, 10)
 
-        self.duration_flag = False
-        self.play_flag = False
+        play_sizer.Add(self.play_btn, 0, wx.RIGHT, 10)
+
+        duration_sizer.Add(wx.StaticText(self, -1, 'Tick Duration (s):'))
+        duration_sizer.Add(self.slider)
+
+        hor_sizer.Add(self.manual_entry, 0, wx.RIGHT, 10)
+        hor_sizer.Add(self.change_duration_btn)
+
+        duration_sizer.Add(hor_sizer)
+        play_sizer.Add(duration_sizer)
+        main_sizer.Add(play_sizer)
+
+        main_sizer.Add(self.save_btn, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 8)
+        main_sizer.Add(self.load_btn, 0, wx.TOP|wx.ALIGN_CENTER_HORIZONTAL, 8)
+        self.SetSizer(main_sizer)
 
     def play_pause(self, evt):
         play = self.play_btn.GetValue()
