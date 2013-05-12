@@ -526,7 +526,7 @@ class Header(wx.Panel):
                 sectors_per_line = 10
                 num_sectors = len(sectors)
                 lines = []
-                
+
                 while sectors:
                     if len(sectors) < sectors_per_line:
                         stop = len(sectors)
@@ -2389,7 +2389,7 @@ class Icon(wx.Panel):
         self.delay_bar.SetBorderColour(colors[0])
         self.delay_bar.SetBarColour(colors[2])
 
-        self.reserved_action = wx.StaticBitmap(self, -1, all_graphics['unknown_icon'])
+        self.reserved_action = wx.StaticBitmap(self, -1, all_graphics['icon_empty_space'])
 
         self.name = wx.StaticText(self, wx.ID_ANY, '')
         self.number = wx.StaticText(self, wx.ID_ANY, '')
@@ -2545,15 +2545,15 @@ class Icon(wx.Panel):
         if action:
             self.delay_bar.SetBarColour('#FFFFFF')
             if action == 'fight':
-                bmp = self.all_graphics['icon_shoot_dist']
+                bmp = self.all_graphics['icon_fight']
             elif action == 'move':
-                bmp = self.all_graphics['icon_walk_dist']
+                bmp = self.all_graphics['icon_move']
 
             self.reserved_action.SetBitmap(bmp)
 
         else:
             self.delay_bar.SetBarColour(colors[2])
-            self.reserved_action.SetBitmap(self.all_graphics['unknown_icon'])
+            self.reserved_action.SetBitmap(self.all_graphics['icon_empty_space'])
 
         self.delay_bar.Refresh()
 
