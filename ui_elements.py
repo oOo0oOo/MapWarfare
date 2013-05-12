@@ -526,6 +526,7 @@ class Header(wx.Panel):
                 sectors_per_line = 10
                 num_sectors = len(sectors)
                 lines = []
+                
                 while sectors:
                     if len(sectors) < sectors_per_line:
                         stop = len(sectors)
@@ -617,8 +618,13 @@ class BottomPanel(wx.Panel):
             self.detail_panel.update_displayed(updated)
 
         elif isinstance(self.detail_panel, Shop):
-            build = self.game_obj['buildings'][self.current_selection[0]]
-            self.detail_panel.update_displayed(build)
+            try:
+                build = self.game_obj['buildings'][self.current_selection[0]]
+                self.detail_panel.update_displayed(build)
+
+            except KeyError:
+                #Building has been destroyed
+                pass
 
     def update_allowed_actions(self):
         sel = {'groups': [], 'transporter': [], 'buildings': []}

@@ -42,23 +42,23 @@ def generate_random_name():
 
     found = False
     while not found:
-      found = True
-      name = random.choice(syllables['part1'])
+        found = True
+        name = random.choice(syllables['part1'])
 
-      if random.random() > 0.75:
-          name += random.choice(syllables['part2'])
+        if random.random() > 0.75:
+            name += random.choice(syllables['part2'])
 
-      name += random.choice(syllables['part3'])
+        name += random.choice(syllables['part3'])
 
-      #Some rules for nicer names
+        # Some rules for nicer names
 
-      #No doubles
-      char = ['i', 'u', 'e', 'h', 'r']
+        # No doubles
+        char = ['i', 'u', 'e', 'h', 'r']
 
-      for c in char:
-        if name.find(2*c) != -1:
-          found = False
-          break
+        for c in char:
+            if name.find(2*c) != -1:
+                found = False
+                break
 
     return name
 
@@ -102,13 +102,15 @@ class MapWarfare:
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
 
         # Add extra units to start off...
-        '''
         self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
         self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
         self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
-        self.new_player('punch_me', 10)
-        '''
-        
+
+        self.new_building(nickname, 6, hq_sector, 'MG Nest', False)    
+
+        # Stuff when playing alone
+        self.new_player('punch_me', 10) 
+
         title = 'Hi {0}!'.format(nickname)
         message_parts = ['F1 to F10 are shortcuts to the actions']
         message_parts.append('F1: Move, F2: Fight, ...')
@@ -994,10 +996,10 @@ class MapWarfare:
         if moved:
             self.check_sectors([sector])
 
-    def check_sectors(self, sectors = []):
-        
+    def check_sectors(self, sectors=[]):
+
         eng_par = self.game_parameters['engine_parameters']
-        
+
         if not sectors:
             sectors = self.sectors.keys()
 
@@ -1005,7 +1007,7 @@ class MapWarfare:
             # get the life of all players in this sector
             max_life = 0
             current = self.sectors[sector]
-            
+
             # how much life does player and current owner have in sector
             total_life = {}
             for player in self.players.keys():
@@ -1020,27 +1022,27 @@ class MapWarfare:
                     for obj in pl[o_type].values():
                         if obj['sector'] == sector:
                             total_life[player] += obj['parameters']['life']
-            
+
             if total_life:
                 max_life = max(total_life.values())
-                player = [p for p, val in total_life.items() if val == max_life][0]
+                if max_life > 0:
+                    player = [p for p, val in total_life.items() if val == max_life][0]
 
-                # takeover factor scales life required
-                if current:
-                    if current != player:
-                        required = total_life[current] * eng_par['take_over_factor']
+                    # takeover factor scales life required
+                    if current:
+                        if current != player:
+                            required = total_life[current] * eng_par['take_over_factor']
 
-                        if required <= total_life[player]:
-                            # Give take over reward scaled to value of sector
-                            reward = round(eng_par['sector_takeover']
-                                           * eng_par['all_sectors'][sector]['weight'], 0)
-                            self.players[player]['account'] += reward
-                            # current possessor ==> take over the sector from player
-                            self.sectors[sector] = player
+                            if required <= total_life[player]:
+                                # Give take over reward scaled to value of sector
+                                reward = round(eng_par['sector_takeover']
+                                               * eng_par['all_sectors'][sector]['weight'], 0)
+                                self.players[player]['account'] += reward
+                                # current possessor ==> take over the sector from player
+                                self.sectors[sector] = player
 
-                elif not current:
-                    self.sectors[sector] = player
-
+                    elif not current:
+                        self.sectors[sector] = player
 
     def on_tick(self):
         '''This function performs all the updates initiated by a tick.'''
