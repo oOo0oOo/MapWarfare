@@ -718,11 +718,11 @@ class BottomPanel(wx.Panel):
         # any groups, transporter and no buildings
         if (sel['groups'] or sel['transporter']) and not sel['buildings']:
             # if no delay, protected or in building
-            if not some_protected and not some_delayed and not some_in_building:
+            if not some_protected and not some_delayed and not some_in_building and not some_transported:
                 allowed_actions.append('move')
 
         # fight allowed if any not delayed
-        if some_not_delayed:
+        if some_not_delayed and not some_transported:
             allowed_actions.append('fight')
 
         # move units between groups is allowed if only groups selected
