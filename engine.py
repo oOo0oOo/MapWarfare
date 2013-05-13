@@ -976,13 +976,13 @@ class MapWarfare:
         moved = False
         if o_id in pl['transporter'].keys():
             if pl['transporter'][o_id]['delay'] == 0:
+                prev_sector = pl['transporter'][o_id]['sector'] 
                 moved = True
                 self.players[nickname]['transporter'][o_id]['sector'] = sector
                 current = pl['transporter'][o_id]['current']
                 if current != []:
                     for g_id in current:
-                        self.players[nickname][
-                            'groups'][g_id]['sector'] = sector
+                        self.players[nickname]['groups'][g_id]['sector'] = sector
 
                 # set delay
                 delay = self.players[nickname][
@@ -1000,6 +1000,7 @@ class MapWarfare:
 
                 if not found:
                     moved = True
+                    prev_sector = pl['groups'][o_id]['sector']
                     pl['groups'][o_id]['sector'] = sector
                     g = self.players[nickname]['groups'][o_id]
                     # apply walk delay to all units
@@ -1011,7 +1012,7 @@ class MapWarfare:
         # if player has now more than "take_over_factor" times life in the
         # sector
         if moved:
-            self.check_sectors([sector])
+            self.check_sectors([prev_sector, sector])
 
     def check_sectors(self, sectors=[]):
 
