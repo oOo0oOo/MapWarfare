@@ -974,6 +974,13 @@ class DetailPage(wx.Dialog):
         btn_sizer.Add(self.add_sub_player_tick)
         btn_sizer.Add(self.add_sub_new_tick)
 
+        btn_sizer.AddSpacer(20)
+        self.change_btn = wx.Button(self, -1, 'Change Tick/Damage')
+        self.change_btn.Bind(wx.EVT_BUTTON, self.change_tick)
+        btn_sizer.Add(self.change_btn)
+
+        btn_sizer.AddSpacer(20)
+
         self.main_sizer.Add(btn_sizer)
 
         self.SetSizer(self.main_sizer)
@@ -1251,6 +1258,7 @@ class DetailPage(wx.Dialog):
             self.add_sub_player_tick.Hide()
             self.add_sub_new_tick.Hide()
             self.add_sub_change_tick.Hide()
+            self.change_btn.Hide()
 
         elif selection in ('unit_action'):
             self.add_parameter_btn.Hide()
@@ -1262,6 +1270,7 @@ class DetailPage(wx.Dialog):
             self.add_sub_player_tick.Hide()
             self.add_sub_new_tick.Hide()
             self.add_sub_change_tick.Hide()
+            self.change_btn.Hide()
 
         elif selection in ('ticks'):
             self.add_parameter_btn.Hide()
@@ -1273,6 +1282,7 @@ class DetailPage(wx.Dialog):
             self.add_sub_player_tick.Show()
             self.add_sub_new_tick.Show()
             self.add_sub_change_tick.Show()
+            self.change_btn.Show()
 
         elif selection == 'sub_action':
             self.add_parameter_btn.Show()
@@ -1284,6 +1294,7 @@ class DetailPage(wx.Dialog):
             self.add_sub_player_tick.Hide()
             self.add_sub_new_tick.Hide()
             self.add_sub_change_tick.Hide()
+            self.change_btn.Hide()
 
         elif selection == 'root':
             self.add_parameter_btn.Hide()
@@ -1295,6 +1306,7 @@ class DetailPage(wx.Dialog):
             self.add_sub_player_tick.Hide()
             self.add_sub_new_tick.Hide()
             self.add_sub_change_tick.Hide()
+            self.change_btn.Hide()
 
         elif selection == 'root_tick':
             self.add_parameter_btn.Hide()
@@ -1306,6 +1318,7 @@ class DetailPage(wx.Dialog):
             self.add_sub_player_tick.Hide()
             self.add_sub_new_tick.Hide()
             self.add_sub_change_tick.Hide()
+            self.change_btn.Hide()
 
         self.detail_panel.FitInside()
         self.Layout()
@@ -1398,6 +1411,18 @@ class DetailPage(wx.Dialog):
         self.update_actions()
         self.update_time_upgrades()
         self.update_damage_upgrades()
+
+    def change_tick(self, evt):
+        dlg = wx.TextEntryDialog(
+            self, 'New tick/damage value?',
+            'Eh??')
+
+        if dlg.ShowModal() == wx.ID_OK:
+            new_tick = int(dlg.GetValue())
+
+            self.current_item[new_tick] = self.current_item[self.last_item]
+            del self.current_item[self.last_item]
+            self.update_all()
 
     def add_tick(self, evt):
         dlg = wx.TextEntryDialog(
