@@ -18,7 +18,7 @@ class ConfigurationHelper(wx.Dialog):
             self.game_parameters = deepcopy(game_parameters)
 
         elif filename:
-            self.game_parameters = pickle.load(open(filename, "rb"))
+            self.game_parameters = pickle.load(open(filename, "r"))
 
         else:
             # All game engine parameters
@@ -181,7 +181,7 @@ class ConfigurationHelper(wx.Dialog):
             filename = dlg.GetFilename()
             dirname = dlg.GetDirectory()
             filepath = os.path.join(dirname, filename)
-            pickle.dump(self.game_parameters, open(filepath, "wb"))
+            pickle.dump(self.game_parameters, open(filepath, "w"))
 
     def load_configuration(self, evt):
         dlg = wx.FileDialog(self, 'Choose a file', '', '', '*.army', wx.OPEN)
@@ -189,7 +189,7 @@ class ConfigurationHelper(wx.Dialog):
             filename = dlg.GetFilename()
             dirname = dlg.GetDirectory()
             filepath = os.path.join(dirname, filename)
-            self.game_parameters = pickle.load(open(filepath, "rb"))
+            self.game_parameters = pickle.load(open(filepath, "r"))
 
             try:
                 self.game_parameters['engine_parameters']['delay_damage']
