@@ -91,31 +91,35 @@ class FightTester(wx.Dialog):
         group2 = [int(i) for i in self.group2.GetValue().split(',')]
         distance = int(self.distance.GetValue())
 
+        acc = 1000000000
         game = engine.MapWarfare(self.game_parameters)
         game.new_player('a', 1)
         game.new_player('b', 2)
-        game.players['a']['account'] = 100000
-        game.players['b']['account'] = 100000
+        game.players['a']['account'] = acc
+        game.players['b']['account'] = acc
 
-        game.new_group('a', group1, 1, costs=False)
-        game.new_group('b', group2, 1, costs=False)
+        game.new_group('a', group1, 1)
+        game.new_group('b', group2, 1)
 
         if self.current_upgrades_1:
             for upgrade in self.current_upgrades_1:
                 for u_id in range(len(group1)):
                     if upgrade in game.players['a']['groups'][1]['units'][u_id]['parameters']['actions'].keys():
-                        game.perform_unit_action('a', upgrade, 1, u_id)
+                        game.perform_unit_action('a', upgrade, o_id = 1, u_id = u_id)
 
         if self.current_upgrades_2:
             for upgrade in self.current_upgrades_2:
                 for u_id in range(len(group2)):
                     if upgrade in game.players['b']['groups'][1]['units'][u_id]['parameters']['actions'].keys():
-                        game.perform_unit_action('b', upgrade, 1, u_id)
+                        game.perform_unit_action('b', upgrade, o_id = 1, u_id = u_id)
+
+        cost_1 = acc - game.players['a']['account']
+        cost_2 = acc - game.players['b']['account']
 
         # ids are one because of headquarters
-        game.fight({'a': [1]}, {'b': [1]}, distance)
+        msg_stack = game.fight({'a': [1]}, {'b': [1]}, distance)
         
-        res = '\nFIGHT\n\nGroup 1 lifes:\n'
+        res = '\nFIGHT\n\nGroup 1 ({}$)\n'.format(cost_1)
         try:
             for unit in game.players['a']['groups'][1]['units'].values():
                 u_p = unit['parameters']
@@ -125,7 +129,7 @@ class FightTester(wx.Dialog):
         except KeyError:
             res += 'all dead\n'
 
-        res += '\n\nGroup 2 lifes:\n'
+        res += '\n\nGroup 2 ({}$):\n'.format(cost_2)
         try:
             for unit in game.players['b']['groups'][1]['units'].values():
                 u_p = unit['parameters']
@@ -133,6 +137,8 @@ class FightTester(wx.Dialog):
                     u_p['life'], u_p['max_life'], u_p['shield'])
         except KeyError:
             res += 'all dead\n'
+
+        res += '\n\n' + msg_stack['other']['message']
 
         self.result.SetLabel(res)
         self.scroll_panel.FitInside()
@@ -207,10 +213,13 @@ class FightTester(wx.Dialog):
                         pass
 
         units = list(set(units))
+
         for u_id in units:
             unit_p = self.game_parameters['unit_parameters'][
                 u_id]['basic_parameters']
             recursive_enlist(unit_p['actions'])
+
+        all_unit_actions = list(set(all_unit_actions))
 
         dlg = wx.SingleChoiceDialog(
             self, 'Take care: Upgrades which require other upgrades have to be added after the original upgrade...', 'Choose a Upgrade',
