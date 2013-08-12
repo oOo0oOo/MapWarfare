@@ -153,7 +153,7 @@ class FightTester(wx.Dialog):
         if hasattr(self, 'game'):
             game = self.game
             distance = int(self.distance.GetValue())
-            game.fight({'a': [1]}, {'b': [1]}, distance)
+            msg_stack = game.fight({'a': [1]}, {'b': [1]}, distance)
             res = '\nFIGHT\n\nGroup 1 lifes:\n'
             try:
                 for unit in game.players['a']['groups'][1]['units'].values():
@@ -170,6 +170,8 @@ class FightTester(wx.Dialog):
                         u_p['life'], u_p['max_life'], u_p['shield'])
             except KeyError:
                 res += 'all dead\n'
+
+            res += '\n\n' + msg_stack['other']['message']
 
             self.result.SetLabel(res)
             self.scroll_panel.FitInside()
