@@ -108,9 +108,9 @@ class MapWarfare:
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
 
         # Add extra units to start off...
+        self.new_building(nickname, 1, hq_sector, 'Kaserne', False)
         '''
-        self.new_building(nickname, 1, hq_sector, 'Kaserne 1', False)
-        self.new_group(nickname, [1], hq_sector, 'Ingeneur', False)
+        self.new_group(nickname, [1], hq_sector, 'Ingenieur', False)
         self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
 
         self.new_transporter(nickname, 1, hq_sector, 'Heli', False)    
