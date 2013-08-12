@@ -283,8 +283,11 @@ class ActionWizard(wiz.Wizard):
                 elif indx in self.buildings.keys():
                     wd.append(0)
 
-            walk_dist = min(wd)
-            
+            if wd:
+                walk_dist = min(wd)
+            else:
+                walk_dist = 0
+
             pages.append(SectorPage(self, self.sectors, current_sector, walk_dist, self.selected_ids))
             params = show_wizard(pages)
             if params:
