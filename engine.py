@@ -86,7 +86,7 @@ class MapWarfare:
             params = pickle.load(open(filepath, "rb"))
             self.players, self.game_parameters, self.sectors, self.ticks = params
 
-    def new_player(self, nickname, hq_sector):
+    def new_player(self, nickname, hq_sector, add_default_units = True):
         # Check if nickname is not taken
         try:
             self.players[nickname]
@@ -104,20 +104,21 @@ class MapWarfare:
             nickname] = {'hq_sector': hq_sector, 'account': par['engine_parameters']['start_account'],
                          'groups': {}, 'transporter': {}, 'buildings': {}, 'cards': {}, 'victory_points': 0}
 
-        # Create home base (building #0), this is used by tests
+        # Create home base (building #0), this is also used by tests
         self.new_building(nickname, 0, hq_sector, 'Your Home Base', False)
 
-        # Add extra units to start off...
-        self.new_building(nickname, 1, hq_sector, 'Kaserne', False)
-        '''
-        self.new_group(nickname, [1], hq_sector, 'Ingenieur', False)
-        self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
+        if add_default_units:
+            # Add extra units to start off...
+            self.new_building(nickname, 1, hq_sector, 'Kaserne', False)
+            
+            self.new_group(nickname, [1], hq_sector, 'Ingenieur', False)
+            self.new_group(nickname, [0, 0, 0, 2], hq_sector, 'Fighters', False)
 
-        self.new_transporter(nickname, 1, hq_sector, 'Heli', False)    
+            self.new_transporter(nickname, 1, hq_sector, 'Heli', False)    
 
-        # Stuff when playing alone
-        self.new_player('punch_me', 10) 
-        '''
+        # Other player (when playing alone)
+        # self.new_player('punch_me', 10) 
+        
 
         title = 'Hi {0}!'.format(nickname)
         message_parts = ['F1 to F10 are shortcuts to the actions']

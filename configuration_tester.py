@@ -86,6 +86,43 @@ class FightTester(wx.Dialog):
 
         self.Layout()
 
+    def parse_group(self, group, prepend = ''):
+        ret = prepend
+        # Create a summary of the group (stolen from ui_elements.Summary.update_selection)
+        par = {'life': 0, 'max_life': 0, 'attack': 0, 'shield': 0}
+        ranges = {
+            'walk_dist': [0, 10000], 'delay_shoot': [0, 10000],
+            'delay_walk': [0, 10000], 'shoot_dist': [0, 10000]
+        }
+
+        for obj in group['units'].values():
+            obj_par = obj['parameters']
+
+            par['life'] += obj_par['life']
+            par['max_life'] += obj_par['max_life']
+            par['attack'] += float(obj_par['attack_min'] + obj_par['attack_max']) / 2
+            par['shield'] += obj_par['shield']
+
+            for p, v in ranges.items():
+                if obj_par[p] > ranges[p][0]:
+                    ranges[p][0] = obj_par[p]
+                if obj_par[p] < ranges[p][1]:
+                    ranges[p][1] = obj_par[p]
+
+        for p, v in par.items():
+            ret += p + ': ' + str(v) + ','
+        ret += '\n'
+        for p, v in ranges.items():
+            ret += '{}: {}-{}\n'.format(p, v[1], v[0])
+
+        ret += '\n'
+        # And list every unit
+        for unit in group['units'].values():
+            u_p = unit['parameters']
+            ret += ' -life: {0}/{1}, shield: {2}\n'.format(u_p['life'], u_p['max_life'], u_p['shield'])
+
+        return ret
+
     def on_fight(self, evt):
         group1 = [int(i) for i in self.group1.GetValue().split(',')]
         group2 = [int(i) for i in self.group2.GetValue().split(',')]
@@ -93,8 +130,8 @@ class FightTester(wx.Dialog):
 
         acc = 1000000000
         game = engine.MapWarfare(self.game_parameters)
-        game.new_player('a', 1)
-        game.new_player('b', 2)
+        game.new_player('a', 1, False)
+        game.new_player('b', 2, False)
         game.players['a']['account'] = acc
         game.players['b']['account'] = acc
 
@@ -113,28 +150,18 @@ class FightTester(wx.Dialog):
                     if upgrade in game.players['b']['groups'][1]['units'][u_id]['parameters']['actions'].keys():
                         game.perform_unit_action('b', upgrade, o_id = 1, u_id = u_id)
 
-        cost_1 = acc - game.players['a']['account']
-        cost_2 = acc - game.players['b']['account']
-
         # ids are one because of headquarters
         msg_stack = game.fight({'a': [1]}, {'b': [1]}, distance)
         
-        res = '\nFIGHT\n\nGroup 1 ({}$)\n'.format(cost_1)
+        res = '\nGroup a\n'
         try:
-            for unit in game.players['a']['groups'][1]['units'].values():
-                u_p = unit['parameters']
-                res += ' -life: {0}/{1}, shield: {2}\n'.format(
-                    u_p['life'], u_p['max_life'], u_p['shield'])
-
+            res = self.parse_group(game.players['a']['groups'][1], res)
         except KeyError:
             res += 'all dead\n'
 
-        res += '\n\nGroup 2 ({}$):\n'.format(cost_2)
+        res += '\n\nGroup b\n'
         try:
-            for unit in game.players['b']['groups'][1]['units'].values():
-                u_p = unit['parameters']
-                res += ' -life: {0}/{1}, shield: {2}\n'.format(
-                    u_p['life'], u_p['max_life'], u_p['shield'])
+            res = self.parse_group(game.players['b']['groups'][1], res)
         except KeyError:
             res += 'all dead\n'
 
@@ -151,23 +178,21 @@ class FightTester(wx.Dialog):
 
     def next_fight(self, evt):
         if hasattr(self, 'game'):
+            acc = 1000000000
             game = self.game
             distance = int(self.distance.GetValue())
             msg_stack = game.fight({'a': [1]}, {'b': [1]}, distance)
-            res = '\nFIGHT\n\nGroup 1 lifes:\n'
+            
+
+            res = '\nGroup a\n'
             try:
-                for unit in game.players['a']['groups'][1]['units'].values():
-                    u_p = unit['parameters']
-                    res += ' -life: {0}/{1}, shield: {2}\n'.format(u_p['life'], u_p['max_life'], u_p['shield'])
+                res = self.parse_group(game.players['a']['groups'][1], res)
             except KeyError:
                 res += 'all dead\n'
 
-            res += '\n\nGroup 2 lifes:\n'
+            res += '\n\nGroup b\n'
             try:
-                for unit in game.players['b']['groups'][1]['units'].values():
-                    u_p = unit['parameters']
-                    res += ' -life: {0}/{1}, shield: {2}\n'.format(
-                        u_p['life'], u_p['max_life'], u_p['shield'])
+                res = self.parse_group(game.players['b']['groups'][1], res)
             except KeyError:
                 res += 'all dead\n'
 

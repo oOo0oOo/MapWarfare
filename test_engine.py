@@ -5,8 +5,8 @@ import pickle
 import copy
 import engine
 
-filepath = 'test_configuration.army'
-game_parameters = pickle.load(open(filepath, "rb"))
+filepath = '2.4.army'
+game_parameters = pickle.load(open(filepath, "r"))
 
 
 class TestBasicFunctions(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestBasicFunctions(unittest.TestCase):
 
         for name in tests:
             game = engine.MapWarfare(game_parameters)
-            game.new_player(name, 1)
+            game.new_player(name, 1, False)
             self.assertTrue(type(game.players[name]) == dict)
             for empty in ('groups', 'transporter', 'cards'):
                 self.assertDictEqual(game.players[name][empty], {})
@@ -30,7 +30,7 @@ class TestBasicFunctions(unittest.TestCase):
 
         for group in tests:
             game = engine.MapWarfare(game_parameters)
-            game.new_player('player1', 1)
+            game.new_player('player1', 1, False)
             account_before = game.players['player1']['account']
             # Create the group
             game.new_group('player1', group, 1)
@@ -72,7 +72,7 @@ class TestMoveIntoSector(unittest.TestCase):
 
         for group in test_groups:
             game = engine.MapWarfare(game_parameters)
-            game.new_player('a', 1)
+            game.new_player('a', 1, False)
             game.new_group('a', group, 1, '', False)
 
             self.assertEqual(game.players['a']['groups'][1]['sector'], 1)
@@ -88,7 +88,7 @@ class TestMoveIntoSector(unittest.TestCase):
     def test_single_move_transporter(self):
 
         game = engine.MapWarfare(game_parameters)
-        game.new_player('a', 1)
+        game.new_player('a', 1, False)
         game.new_transporter('a', 0, 1, '', False)
 
         self.assertEqual(game.players['a']['transporter'][1]['sector'], 1)
@@ -114,7 +114,7 @@ class TestSimpleActions(unittest.TestCase):
                       'parameters': group, 'target': 'own'}
 
             game = engine.MapWarfare(game_parameters)
-            game.new_player('a', 1)
+            game.new_player('a', 1, False)
             account_before = game.players['a']['account']
             game.perform_action('a', action)
             self.assertEqual(
@@ -351,8 +351,8 @@ class TestSimpleActions(unittest.TestCase):
 
     def construct_game(self):
         game = engine.MapWarfare(game_parameters)
-        game.new_player('a', 1)
-        game.new_player('b', 2)
+        game.new_player('a', 1, False)
+        game.new_player('b', 2, False)
 
         game.new_group('a', [0, 1, 0], 1)
         game.new_group('a', [0, 1, 0], 1)
