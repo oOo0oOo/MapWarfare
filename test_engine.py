@@ -31,7 +31,8 @@ class TestBasicFunctions(unittest.TestCase):
         for group in tests:
             game = engine.MapWarfare(game_parameters)
             game.new_player('player1', 1, False)
-            account_before = game.players['player1']['account']
+            acc = 1000000
+            game.players['player1']['account'] = acc
             # Create the group
             game.new_group('player1', group, 1)
             # get the group
@@ -56,7 +57,7 @@ class TestBasicFunctions(unittest.TestCase):
 
             self.assertEqual(len(res_group['units'].keys()), len(exp_u.keys()))
 
-            acc_exp = account_before - total_price
+            acc_exp = acc - total_price
 
             self.assertEqual(game.players['player1']['account'], acc_exp)
             for u_id, unit in res_group['units'].items():
@@ -73,7 +74,7 @@ class TestMoveIntoSector(unittest.TestCase):
         for group in test_groups:
             game = engine.MapWarfare(game_parameters)
             game.new_player('a', 1, False)
-            game.new_group('a', group, 1, '', False)
+            game.new_group('a', group, 1, costs = False)
 
             self.assertEqual(game.players['a']['groups'][1]['sector'], 1)
 
@@ -222,8 +223,8 @@ class TestSimpleActions(unittest.TestCase):
                 'changes': change}
 
             game = self.construct_game()
-            success = game.perform_action(
-                'a', action, copy.deepcopy(selection))
+
+            success = game.perform_action('a', action, copy.deepcopy(selection))
             self.assertTrue(success)
             for param, val in change.items():
                 # a changes group 1
@@ -354,13 +355,13 @@ class TestSimpleActions(unittest.TestCase):
         game.new_player('a', 1, False)
         game.new_player('b', 2, False)
 
-        game.new_group('a', [0, 1, 0], 1)
-        game.new_group('a', [0, 1, 0], 1)
-        game.new_group('a', [0, 1, 0], 1)
+        game.new_group('a', [0, 2, 3], 1, costs=False)
+        game.new_group('a', [0, 2, 3], 1, costs=False)
+        game.new_group('a', [0, 2, 3], 1, costs=False)
 
-        game.new_group('b', [0, 1, 0], 1)
-        game.new_group('b', [0, 1, 0], 1)
-        game.new_group('b', [0, 1, 0], 1)
+        game.new_group('b', [0, 2, 3], 1, costs=False)
+        game.new_group('b', [0, 2, 3], 1, costs=False)
+        game.new_group('b', [0, 2, 3], 1, costs=False)
 
         return game
 
