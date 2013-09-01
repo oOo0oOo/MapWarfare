@@ -942,6 +942,10 @@ class DetailPage(wx.Dialog):
         self.add_unit_action_btn.Bind(wx.EVT_BUTTON, self.add_unit_action)
         btn_sizer.Add(self.add_unit_action_btn)
 
+        self.add_time_dependent_action_btn = wx.Button(self, -1, 'Add Time Dependent Action')
+        self.add_time_dependent_action_btn.Bind(wx.EVT_BUTTON, self.add_time_dependent_action)
+        btn_sizer.Add(self.add_time_dependent_action_btn)
+
         self.add_tick_btn = wx.Button(self, -1, 'Add action at tick/damage')
         self.add_tick_btn.Bind(wx.EVT_BUTTON, self.add_tick)
         btn_sizer.Add(self.add_tick_btn)
@@ -1185,11 +1189,14 @@ class DetailPage(wx.Dialog):
     def update_buttons(self, selection):
         self.sel_root = False
 
-        if selection in ('unit_action', 'sub_action'):
+        if selection in ('unit_action', 'sub_action', 'time_dependent_action'):
             to_display = self.current_item[self.last_item]
 
-        if selection == 'unit_action':
-            self.name_ctrl.SetLabel(self.last_item)
+        #elif selection == 'time_dependent_action':
+        #    to_display = self.current_item['time_dependent_actions'][self.last_item]
+
+        if selection in ('time_dependent_action', 'unit_action'):
+            self.name_ctrl.SetLabel(str(self.last_item))
 
         elif selection == 'ticks':
             to_display = {}
@@ -1241,7 +1248,7 @@ class DetailPage(wx.Dialog):
                 # Add to sub_element dictionary
                 self.detail_ui[param] = this
 
-        if selection != 'unit_action':
+        if selection not in ('unit_action', 'time_dependent_action'):
             self.name_ctrl.Hide()
             self.name_label.Hide()
         else:
@@ -1251,6 +1258,7 @@ class DetailPage(wx.Dialog):
         if selection == 'parameter':
             self.add_parameter_btn.Hide()
             self.add_unit_action_btn.Hide()
+            self.add_time_dependent_action_btn.Hide()
             self.add_sub_change_btn.Hide()
             self.add_sub_player.Hide()
             self.add_sub_new.Hide()
@@ -1260,9 +1268,10 @@ class DetailPage(wx.Dialog):
             self.add_sub_change_tick.Hide()
             self.change_btn.Hide()
 
-        elif selection in ('unit_action'):
+        elif selection in ('unit_action', 'time_dependent_action'):
             self.add_parameter_btn.Hide()
             self.add_unit_action_btn.Hide()
+            self.add_time_dependent_action_btn.Hide()
             self.add_sub_change_btn.Show()
             self.add_sub_player.Show()
             self.add_sub_new.Show()
@@ -1275,6 +1284,7 @@ class DetailPage(wx.Dialog):
         elif selection in ('ticks'):
             self.add_parameter_btn.Hide()
             self.add_unit_action_btn.Hide()
+            self.add_time_dependent_action_btn.Hide()
             self.add_sub_change_btn.Hide()
             self.add_sub_player.Hide()
             self.add_sub_new.Hide()
@@ -1287,6 +1297,7 @@ class DetailPage(wx.Dialog):
         elif selection == 'sub_action':
             self.add_parameter_btn.Show()
             self.add_unit_action_btn.Show()
+            self.add_time_dependent_action_btn.Show()
             self.add_sub_change_btn.Hide()
             self.add_sub_player.Hide()
             self.add_sub_new.Hide()
@@ -1299,6 +1310,7 @@ class DetailPage(wx.Dialog):
         elif selection == 'root':
             self.add_parameter_btn.Hide()
             self.add_unit_action_btn.Show()
+            self.add_time_dependent_action_btn.Hide()
             self.add_sub_change_btn.Hide()
             self.add_sub_player.Hide()
             self.add_sub_new.Hide()
@@ -1311,6 +1323,7 @@ class DetailPage(wx.Dialog):
         elif selection == 'root_tick':
             self.add_parameter_btn.Hide()
             self.add_unit_action_btn.Hide()
+            self.add_time_dependent_action_btn.Hide()
             self.add_sub_change_btn.Hide()
             self.add_sub_player.Hide()
             self.add_sub_new.Hide()
@@ -1346,10 +1359,31 @@ class DetailPage(wx.Dialog):
                 selection = 'unit_action'
                 self.is_unit_action = True
         else:
-            selection = 'sub_action'
+            print self.current_item
+            print self.last_item
+            print item_sel
+            
+            if type(self.current_item) != list:
+                selection = 'sub_action'
+            else:
+                selection = 'time_dependent_action'
+                self.is_unit_action = True
+
+            '''
+            if type(complete_adress[len(complete_adress) - 2]) != int:
+                selection = 'sub_action'
+            else:
+                if type(self.current_item) != list:
+                    selection = 'sub_action'
+                else:
+                    selection = 'time_dependent_action'
+                    self.is_unit_action = True
+            '''
 
         if complete_adress == tuple(['root']):
             selection = 'root'
+
+        print selection
 
         # get the requested field
         def get_action(adress):
@@ -1357,13 +1391,26 @@ class DetailPage(wx.Dialog):
             last = len(adress) - 1
             for item_id in range(len(adress)):
                 item = adress[item_id]
-                # or if it is a sub action (integer)
+
+                # or if it is a sub action or time_dependent(integer)
                 try:
                     item = int(item)
-                    if item_id != last:
-                        cur_action = cur_action[item]['changes']
+                    if type(adress[item_id-1]) != int or type(cur_action) == list:
+                        #Sub action
+                        if item_id != last:
+                                cur_action = cur_action[item]['changes']
+                        else:
+                            return cur_action
+
                     else:
-                        return cur_action
+                        # time_dependent
+                        if item_id != last:
+                            cur_action = cur_action['time_dependent_actions'][item]['actions']
+                        else:
+                            if type(cur_action) == dict:
+                                return cur_action['time_dependent_actions']
+                            else:
+                                return cur_action
 
                 # check if item is a unit action (string)
                 # or if it is a parameter (string starting with parameter_)
@@ -1478,6 +1525,30 @@ class DetailPage(wx.Dialog):
 
             self.update_all()
 
+    def add_time_dependent_action(self, evt):
+        dlg = wx.TextEntryDialog(
+            self, 'When does the action come up (now + n ticks)?',
+            'Eh??')
+
+        default_action = {'price': 0, 'delay': 0, 'num_uses': -1,
+                          'category': 'upgrade', 'actions': []}
+
+        if dlg.ShowModal() == wx.ID_OK:
+            new_param = int(dlg.GetValue())
+            if self.last_item != -1:
+                if 'time_dependent_actions' not in self.current_item[self.last_item]['changes'].keys():
+                    self.current_item[self.last_item][
+                        'changes']['time_dependent_actions'] = {}
+
+                self.current_item[self.last_item][
+                    'changes']['time_dependent_actions'][new_param] = default_action
+
+            else:
+                print 'triggered'
+                self.current_item['time_dependent_actions'][new_param] = default_action
+
+            self.update_all()
+
     def add_sub_action_change(self, evt):
 
         default_action = {'type': 'change', 'target': 'self',
@@ -1553,9 +1624,16 @@ class DetailPage(wx.Dialog):
                 self.current_item[self.last_item] = value
 
         cur_name = self.name_ctrl.GetValue()
-        if cur_name != self.last_item and self.is_unit_action:
-            self.current_item[cur_name] = self.current_item[self.last_item]
-            del self.current_item[self.last_item]
+
+        if self.is_unit_action:
+            if cur_name != self.last_item and type(self.last_item) != int:  
+                self.current_item[cur_name] = self.current_item[self.last_item]
+                del self.current_item[self.last_item]
+
+            elif int(cur_name) != self.last_item and type(self.last_item) == int:  
+                self.current_item[int(cur_name)] = self.current_item[self.last_item]
+                del self.current_item[self.last_item]
+
 
         self.update_all()
 
@@ -1569,11 +1647,15 @@ class DetailPage(wx.Dialog):
                 self.actions[previous_adress], name)
             self.action_tree.SetPyData(self.actions[adress], adress)
 
-        def add_nested_unit_actions(name, action, initial_adress):
+        def add_nested_unit_actions(name, action, initial_adress, unit_action = True):
             '''Recursively add new items to the root'''
             this_adress = tuple(list(initial_adress) + [name])
-            add_item('Unit Action: ' + name + ': ' + str(
-                action['price']) + '$', this_adress, initial_adress)
+            if unit_action:
+                add_item('Unit Action: ' + name + ': ' + str(
+                    action['price']) + '$', this_adress, initial_adress)
+            else:
+                add_item('Time Dependent Action: (' + str(name) + ' ticks)', this_adress, initial_adress)
+
             for act_id in range(len(action['actions'])):
                 act = action['actions'][act_id]
                 sub_adress = tuple(list(this_adress) + [act_id])
@@ -1589,6 +1671,10 @@ class DetailPage(wx.Dialog):
                             for name, action in change.items():
                                 add_nested_unit_actions(
                                     name, action, sub_adress)
+
+                        elif param == 'time_dependent_actions':
+                            for tick, action in change.items():
+                                add_nested_unit_actions(tick, action, sub_adress, False)
                         else:
                             item_adress = tuple(
                                 list(sub_adress) + ['parameter_' + param])

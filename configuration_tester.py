@@ -182,7 +182,6 @@ class FightTester(wx.Dialog):
             game = self.game
             distance = int(self.distance.GetValue())
             msg_stack = game.fight({'a': [1]}, {'b': [1]}, distance)
-            
 
             res = '\nGroup a\n'
             try:

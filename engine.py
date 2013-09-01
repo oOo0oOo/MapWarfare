@@ -186,6 +186,7 @@ class MapWarfare:
         unit_id = 0
         self.players[nickname]['groups'][new_group_id]['units'] = {}
         names = ''
+
         for unit in units:
             params = copy.deepcopy(self.game_parameters[
                                    'unit_parameters'][unit]['basic_parameters'])
@@ -193,7 +194,8 @@ class MapWarfare:
             names += name + ', '
             new_unit = {
                 'name': name, 'parameters': params, 'age': 0, 'total_damage': 0,
-                'protected': False, 'delay': delay, 'building': -1
+                'protected': False, 'delay': delay, 'building': -1, 
+                'ticks': copy.deepcopy(self.game_parameters['unit_parameters'][unit]['elite_parameters']['ticks'])
             }
 
             self.players[nickname]['groups'][new_group_id][
@@ -227,7 +229,11 @@ class MapWarfare:
         new_id = self.get_id(nickname)
 
         new_transporter = {'sector': sector, 'name': transporter_name, 'parameters': params, 'current': [], 'age': 0,
-                           'delay': delay, 'total_damage': 0, 'protected': False}
+                           'delay': delay, 'total_damage': 0, 'protected': False,
+                           'ticks': copy.deepcopy(self.game_parameters['transport_parameters']
+                                    [transporter_type]['elite_parameters']['ticks'])
+                           }
+
 
         self.players[nickname]['transporter'][new_id] = new_transporter
 
@@ -250,7 +256,10 @@ class MapWarfare:
         new_id = self.get_id(nickname)
 
         new_building = {'sector': sector, 'name': name, 'parameters': params, 'current': [], 'age': 0,
-                        'delay': delay, 'total_damage': 0}
+                        'delay': delay, 'total_damage': 0, 
+                        'ticks': copy.deepcopy(self.game_parameters['building_parameters']
+                                    [building_type]['elite_parameters']['ticks'])
+                        }
         self.players[nickname]['buildings'][new_id] = new_building
 
         title = 'New Building: ID ' + str(new_id)
@@ -401,6 +410,10 @@ class MapWarfare:
                 if param == 'actions':
                     for name, parameters in new_change.items():
                         u['parameters']['actions'][name] = parameters
+
+                if param == 'time_dependent_actions':
+                    for tick, parameters in new_change.items():
+                        u['ticks'][tick] = parameters
 
                 elif param == 'name':
                     u['name'] = new_change
@@ -1111,24 +1124,10 @@ class MapWarfare:
 
             # Check if any unit upgrades to elite status
             # because of total_damage
-            # create a map of all upgrade_levels
-            upgrades = {}
-            upgrades['groups'] = {}
-            for u_id, unit in self.game_parameters['unit_parameters'].items():
-                upgrades['groups'][u_id] = unit['elite_parameters']['ticks']
-
-            upgrades['transporter'] = {}
-            for t_id, trans in self.game_parameters['transport_parameters'].items():
-                upgrades['transporter'][t_id] = trans[
-                    'elite_parameters']['ticks']
-
-            upgrades['buildings'] = {}
-            for b_id, buil in self.game_parameters['building_parameters'].items():
-                upgrades['buildings'][b_id] = buil['elite_parameters']['ticks']
 
             for g_id, group in self.players[nickname]['groups'].items():
                 for u_id, unit in group['units'].items():
-                    for border, actions in upgrades['groups'][unit['parameters']['id']].items():
+                    for border, actions in unit['ticks'].items():
                         if unit['age'] == border:
                             # perform the upgrades
                             for action in actions:
@@ -1137,7 +1136,7 @@ class MapWarfare:
 
             for o_type in ('transporter', 'buildings'):
                 for o_id, obj in self.players[nickname][o_type].items():
-                    for border, actions in upgrades[o_type][obj['parameters']['id']].items():
+                    for border, actions in obj['ticks'].items():
                         if obj['age'] == border:
                             # perform the upgrades
                             for action in actions:
