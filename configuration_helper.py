@@ -1359,26 +1359,11 @@ class DetailPage(wx.Dialog):
                 selection = 'unit_action'
                 self.is_unit_action = True
         else:
-            print self.current_item
-            print self.last_item
-            print item_sel
-            
             if type(self.current_item) != list:
                 selection = 'sub_action'
             else:
                 selection = 'time_dependent_action'
                 self.is_unit_action = True
-
-            '''
-            if type(complete_adress[len(complete_adress) - 2]) != int:
-                selection = 'sub_action'
-            else:
-                if type(self.current_item) != list:
-                    selection = 'sub_action'
-                else:
-                    selection = 'time_dependent_action'
-                    self.is_unit_action = True
-            '''
 
         if complete_adress == tuple(['root']):
             selection = 'root'
