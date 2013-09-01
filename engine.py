@@ -413,7 +413,7 @@ class MapWarfare:
 
                 if param == 'time_dependent_actions':
                     for tick, parameters in new_change.items():
-                        u['ticks'][tick] = parameters
+                        u['ticks'][tick + self.ticks] = parameters
 
                 elif param == 'name':
                     u['name'] = new_change
