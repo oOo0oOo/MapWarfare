@@ -83,7 +83,7 @@ class MapWarfare:
 
     def load_game(self, filepath = ''):
         if filepath:
-            params = pickle.load(open(filepath, "rb"))
+            params = pickle.load(open(filepath, "r"))
             self.players, self.game_parameters, self.sectors, self.ticks = params
 
     def new_player(self, nickname, hq_sector, add_default_units = True):
@@ -1517,36 +1517,3 @@ class MapWarfare:
             msg_stack[player] = {'title': title, 'message': msg, 'popup': True}
 
         return msg_stack
-
-        '''
-            # make message stack with events from fight
-            msg_stack = {}
-            enemy = enemies.keys()[0]
-            starter = starter.keys()[0]
-            msg = {}
-            msg['title'] = 'Fight against {0}!'.format(enemy)
-            msg['message'] = 'You made {0} damage,\n'.format(starter_damage)
-            msg['message'] += '{0} made {1} damage.'.format(
-                enemy, enemy_damage)
-            msg['popup'] = True
-            msg_stack[starter] = msg
-            msg = {}
-            msg['title'] = 'Fight against {0}!'.format(starter)
-            msg['message'] = 'You made {0} damage,\n'.format(enemy_damage)
-            msg['message'] += '{0} made {1} damage.'.format(
-                starter, starter_damage)
-            msg['popup'] = True
-            msg_stack[enemy] = msg
-            msg = {}
-            msg['title'] = 'Fight between {0} & {1}!'.format(starter, enemy)
-            msg['message'] = '{0} made {1} damage,\n'.format(
-                starter, starter_damage)
-            msg['message'] += '{0} made {1} damage.'.format(
-                enemy, enemy_damage)
-            msg['popup'] = False
-            msg_stack['others'] = msg
-
-            return msg_stack
-
-        return {starter: {'title': 'Could not fight', 'message': '', 'popup': True}}
-        '''
