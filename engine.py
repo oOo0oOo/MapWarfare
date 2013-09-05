@@ -397,7 +397,7 @@ class MapWarfare:
                 found_error = False
 
                 # unaltered changes
-                if param in ('actions', 'shop_transporter', 'shop_units', 'name', 'shield_factor'):
+                if param in ('actions', 'time_dependent_actions', 'shop_transporter', 'shop_units', 'name', 'shield_factor'):
                     new_change = change
 
                 elif action['random'] > 0:
@@ -411,7 +411,7 @@ class MapWarfare:
                     for name, parameters in new_change.items():
                         u['parameters']['actions'][name] = parameters
 
-                if param == 'time_dependent_actions':
+                elif param == 'time_dependent_actions':
                     for tick, parameters in new_change.items():
                         u['ticks'][tick + self.ticks] = parameters
 
@@ -1124,24 +1124,29 @@ class MapWarfare:
 
             # Check if any unit upgrades to elite status
             # because of total_damage
-
             for g_id, group in self.players[nickname]['groups'].items():
                 for u_id, unit in group['units'].items():
                     for border, actions in unit['ticks'].items():
                         if unit['age'] == border:
                             # perform the upgrades
-                            for action in actions:
-                                changes_stack.append(self.perform_action(nickname, action,
-                                                                         o_id=g_id, u_id=u_id, sector=group['sector']))
+                            if type(actions) == list:
+                                for action in actions:
+                                    changes_stack.append(self.perform_action(nickname, action,o_id=g_id, u_id=u_id, sector=group['sector']))
+                            elif type(actions) == dict:
+                                changes_stack.append(self.perform_action(nickname, actions,o_id=g_id, u_id=u_id, sector=group['sector']))
 
             for o_type in ('transporter', 'buildings'):
                 for o_id, obj in self.players[nickname][o_type].items():
                     for border, actions in obj['ticks'].items():
                         if obj['age'] == border:
                             # perform the upgrades
-                            for action in actions:
-                                changes_stack.append(self.perform_action(nickname,
+                            if type(actions) == list:
+                                for action in actions:
+                                    changes_stack.append(self.perform_action(nickname,
                                                                          action, o_id=o_id, sector=obj['sector']))
+                            elif type(actions) == dict:
+                                changes_stack.append(self.perform_action(nickname,
+                                                                         actions, o_id=o_id, sector=obj['sector']))
 
             # Remove all groups with no units left
             for g_id, group in self.players[nickname]['groups'].items():

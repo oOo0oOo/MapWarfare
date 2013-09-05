@@ -898,7 +898,7 @@ class DetailPage(wx.Dialog):
 
         self.name_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.name_ctrl = wx.TextCtrl(self, -1, '', size=(200, 25))
-        self.name_label = wx.StaticText(self, -1, 'Unit Action Name:')
+        self.name_label = wx.StaticText(self, -1, '')
         self.name_sizer.Add(self.name_label)
         self.name_sizer.AddSpacer(10)
         self.name_sizer.Add(self.name_ctrl)
@@ -1189,16 +1189,16 @@ class DetailPage(wx.Dialog):
     def update_buttons(self, selection):
         self.sel_root = False
 
-        if selection in ('unit_action', 'sub_action', 'time_dependent_action'):
+        if selection in ('time_dependent_action', 'unit_action'):
+            self.name_ctrl.SetLabel(str(self.last_item))
+
+        if selection in ('unit_action', 'sub_action'):
             to_display = self.current_item[self.last_item]
 
         #elif selection == 'time_dependent_action':
         #    to_display = self.current_item['time_dependent_actions'][self.last_item]
 
-        if selection in ('time_dependent_action', 'unit_action'):
-            self.name_ctrl.SetLabel(str(self.last_item))
-
-        elif selection == 'ticks':
+        elif selection in ('ticks', 'time_dependent_action'):
             to_display = {}
 
         elif selection == 'parameter':
@@ -1210,7 +1210,7 @@ class DetailPage(wx.Dialog):
             self.sel_root = True
 
         for param, value in to_display.items():
-            if param not in ('actions', 'changes'):
+            if param not in ('actions', 'changes', 'time_dependent_actions'):
                 if param in ('shop_units', 'shop_transporter', 'parameters'):
                     if type(value) not in (int, float):
                         value = [str(v) for v in value]
@@ -1354,22 +1354,28 @@ class DetailPage(wx.Dialog):
                     self.last_item = self.last_item[10:]
                 else:
                     selection = 'unit_action'
+                    self.name_label.SetLabel('Unit Action Name:')
                     self.is_unit_action = True
             else:
                 selection = 'unit_action'
+                self.name_label.SetLabel('Unit Action Name:')
                 self.is_unit_action = True
         else:
-            if type(self.current_item) != list:
-                selection = 'sub_action'
-            else:
+            #time dependent if even number of numbers as last items in adress
+            for i, adr in enumerate(reversed(list(complete_adress))):
+                if type(adr) != int:
+                    break
+
+            if not i%2:
                 selection = 'time_dependent_action'
+                self.name_label.SetLabel('Ticks until action:')
                 self.is_unit_action = True
+            else:
+                selection = 'sub_action'
 
         if complete_adress == tuple(['root']):
             selection = 'root'
-
-        print selection
-
+            
         # get the requested field
         def get_action(adress):
             cur_action = self.obj['basic_parameters']
@@ -1390,7 +1396,7 @@ class DetailPage(wx.Dialog):
                     else:
                         # time_dependent
                         if item_id != last:
-                            cur_action = cur_action['time_dependent_actions'][item]['actions']
+                            cur_action = cur_action['time_dependent_actions'][item]
                         else:
                             if type(cur_action) == dict:
                                 return cur_action['time_dependent_actions']
@@ -1515,45 +1521,44 @@ class DetailPage(wx.Dialog):
             self, 'When does the action come up (now + n ticks)?',
             'Eh??')
 
-        default_action = {'price': 0, 'delay': 0, 'num_uses': -1,
-                          'category': 'upgrade', 'actions': []}
-
         if dlg.ShowModal() == wx.ID_OK:
             new_param = int(dlg.GetValue())
-            if self.last_item != -1:
-                if 'time_dependent_actions' not in self.current_item[self.last_item]['changes'].keys():
-                    self.current_item[self.last_item][
-                        'changes']['time_dependent_actions'] = {}
-
+            if 'time_dependent_actions' not in self.current_item[self.last_item]['changes'].keys():
                 self.current_item[self.last_item][
-                    'changes']['time_dependent_actions'][new_param] = default_action
+                    'changes']['time_dependent_actions'] = {}
 
-            else:
-                print 'triggered'
-                self.current_item['time_dependent_actions'][new_param] = default_action
+            self.current_item[self.last_item][
+                'changes']['time_dependent_actions'][new_param] = []
 
             self.update_all()
+
+    def generic_add(self, action):
+        here = self.current_item[self.last_item]
+        if type(here) == dict:
+            self.current_item[self.last_item]['actions'].append(action)
+        elif type(here) == list:
+            self.current_item[self.last_item].append(action)
 
     def add_sub_action_change(self, evt):
 
         default_action = {'type': 'change', 'target': 'self',
                           'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id'}
 
-        self.current_item[self.last_item]['actions'].append(default_action)
+        self.generic_add(default_action)
         self.update_all()
 
     def add_sub_action_player(self, evt):
         default_action = {'type': 'change', 'target': 'enemy',
                           'level': 'player', 'random': 1, 'changes': {}}
 
-        self.current_item[self.last_item]['actions'].append(default_action)
+        self.generic_add(default_action)
         self.update_all()
 
     def add_sub_action_new(self, evt):
         default_action = {'type': 'new', 'level': 'buildings',
                           'parameters': 0, 'target': 'own'}
 
-        self.current_item[self.last_item]['actions'].append(default_action)
+        self.generic_add(default_action)
         self.update_all()
 
     def add_sub_action_change_tick(self, evt):
@@ -1631,6 +1636,7 @@ class DetailPage(wx.Dialog):
             self.actions[adress] = self.action_tree.AppendItem(
                 self.actions[previous_adress], name)
             self.action_tree.SetPyData(self.actions[adress], adress)
+            
 
         def add_nested_unit_actions(name, action, initial_adress, unit_action = True):
             '''Recursively add new items to the root'''
@@ -1638,11 +1644,14 @@ class DetailPage(wx.Dialog):
             if unit_action:
                 add_item('Unit Action: ' + name + ': ' + str(
                     action['price']) + '$', this_adress, initial_adress)
+                actions = action['actions']
+
             else:
                 add_item('Time Dependent Action: (' + str(name) + ' ticks)', this_adress, initial_adress)
+                actions = action
 
-            for act_id in range(len(action['actions'])):
-                act = action['actions'][act_id]
+
+            for act_id, act in enumerate(actions):
                 sub_adress = tuple(list(this_adress) + [act_id])
                 add_item(
                     'Sub Action: ' + act['target'], sub_adress, this_adress)
@@ -1652,19 +1661,19 @@ class DetailPage(wx.Dialog):
                     changes = {}
 
                 for param, change in changes.items():
-                        if param == 'actions':
-                            for name, action in change.items():
-                                add_nested_unit_actions(
-                                    name, action, sub_adress)
+                    if param == 'actions':
+                        for name, action in change.items():
+                            add_nested_unit_actions(
+                                name, action, sub_adress)
 
-                        elif param == 'time_dependent_actions':
-                            for tick, action in change.items():
-                                add_nested_unit_actions(tick, action, sub_adress, False)
-                        else:
-                            item_adress = tuple(
-                                list(sub_adress) + ['parameter_' + param])
-                            add_item('Parameter: ' + param +
-                                     '  ' + str(change), item_adress, sub_adress)
+                    elif param == 'time_dependent_actions':
+                        for tick, action in change.items():
+                            add_nested_unit_actions(tick, action, sub_adress, False)
+                    else:
+                        item_adress = tuple(
+                            list(sub_adress) + ['parameter_' + param])
+                        add_item('Parameter: ' + param +
+                                 '  ' + str(change), item_adress, sub_adress)
 
         root_adress = tuple(['root'])
         self.actions[root_adress] = self.action_tree.AddRoot('Root (Unit)')

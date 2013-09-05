@@ -78,7 +78,7 @@ class TestMoveIntoSector(unittest.TestCase):
 
             self.assertEqual(game.players['a']['groups'][1]['sector'], 1)
 
-            random_sector = random.randrange(1, 20)
+            random_sector = random.randrange(1, 10)
             game.move_into_sector('a', 1, random_sector)
             self.assertEqual(
                 game.players['a']['groups'][1]['sector'], random_sector)
@@ -94,7 +94,7 @@ class TestMoveIntoSector(unittest.TestCase):
 
         self.assertEqual(game.players['a']['transporter'][1]['sector'], 1)
 
-        random_sector = random.randrange(1, 20)
+        random_sector = random.randrange(1, 10)
         game.move_into_sector('a', 1, random_sector)
         trans = game.players['a']['transporter'][1]
         self.assertEqual(trans['sector'], random_sector)
@@ -128,7 +128,10 @@ class TestSimpleActions(unittest.TestCase):
             self.assertEqual(sorted(all_units), sorted(group))
 
     def test_healing(self):
-        print 'Implement Test: Healing/Doctor'
+        print 'IMPLEMENT Test: Healing/Doctor'
+
+    def test_unit_actions(self):
+        print 'IMPLEMENT Test: unit actions'
 
     def test_action_player(self):
         tests = [
@@ -349,6 +352,45 @@ class TestSimpleActions(unittest.TestCase):
                 exp = par[unit['parameters']['id']][
                     'basic_parameters'][param] + val
                 self.assertEqual(exp, unit['parameters'][param])
+
+            # Test time-depended upgrade
+            num_rounds = random.randrange(1, 100)
+            action = {
+                'type': 'change', 'target': 'self', 'level': 'id', 
+                'random': 0, 'changes': {'time_dependent_actions': 
+                    {num_rounds:
+                        [{
+                        'type': 'change', 'target': 'self', 'level': 'id', 
+                        'random': 0,'changes': change
+                        }]
+                    }
+                }}
+
+            game = self.construct_game()
+
+            # Run 9 ticks (10th round)
+            for i in range(9):
+                game.on_tick()
+
+            success = game.perform_action(
+                'a', action, copy.deepcopy(selection), o_id=1, u_id=1)
+            self.assertTrue(success)
+
+            # Run num_rounds ticks
+            for i in range(num_rounds):
+                game.on_tick()
+
+            # Save the state before, unit will be upgraded at end of tick
+            before = copy.deepcopy(game.players['a']['groups'][1]['units'][1])
+            game.on_tick()
+
+            # test all parameters
+            for param, val in change.items():
+                # a changes group 1
+                unit = game.players['a']['groups'][1]['units'][1]
+                exp = before['parameters'][param] + val
+                self.assertEqual(exp, unit['parameters'][param])
+
 
     def construct_game(self):
         game = engine.MapWarfare(game_parameters)
