@@ -421,6 +421,11 @@ class MapWarfare:
                 elif param == 'name':
                     u['name'] = new_change
 
+                elif param == 'delay':
+                    u['delay'] += new_change
+                    if u['delay'] < 0:
+                        u['delay'] = 0
+
                 elif param == 'shield':
                     max_shield = u['parameters']['max_shield']
                     if u['parameters']['shield'] + new_change > max_shield:
