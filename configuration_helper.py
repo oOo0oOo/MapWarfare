@@ -190,22 +190,6 @@ class ConfigurationHelper(wx.Dialog):
             dirname = dlg.GetDirectory()
             filepath = os.path.join(dirname, filename)
             self.game_parameters = pickle.load(open(filepath, "r"))
-
-            try:
-                self.game_parameters['engine_parameters']['delay_damage']
-            except KeyError:
-                self.game_parameters['engine_parameters']['delay_damage'] = 0.0
-
-            try:
-                self.game_parameters['engine_parameters']['extra_shoot_dist']
-            except KeyError:
-                self.game_parameters['engine_parameters']['extra_shoot_dist'] = 2
-
-            try:
-                self.game_parameters['engine_parameters']['max_victory_diff']
-            except KeyError:
-                self.game_parameters['engine_parameters']['max_victory_diff'] = 50
-
             self.update_buttons()
 
     def on_engine_parameters(self, evt):
@@ -639,7 +623,9 @@ class CardPage(wx.Dialog):
 
     def on_add(self, evt):
         default_change = {'type': 'change', 'target': 'self',
-                          'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id'}
+                          'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id',
+                        'blocked': 'False', 'reversed': -1}
+
         default_new = {'type': 'new', 'level': 'buildings',
                        'parameters': 0, 'target': 'own'}
         dlg = wx.SingleChoiceDialog(
@@ -1237,6 +1223,10 @@ class DetailPage(wx.Dialog):
                     this.append(wx.ComboBox(self.detail_panel, size=(
                         100, 20), choices=['upgrade', 'shop', 'equipment', 'standard']))
                     this[2].SetStringSelection(value)
+                elif param == 'blocked':
+                    this.append(wx.ComboBox(self.detail_panel,
+                                size=(100, 20), choices=['True', 'False']))
+                    this[2].SetStringSelection(value)
                 else:
                     this.append(wx.TextCtrl(
                         self.detail_panel, -1, str(value), size=(100, 20)))
@@ -1542,7 +1532,8 @@ class DetailPage(wx.Dialog):
     def add_sub_action_change(self, evt):
 
         default_action = {'type': 'change', 'target': 'self',
-                          'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id'}
+                    'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id',
+                    'blocked': 'False', 'reversed': -1}
 
         self.generic_add(default_action)
         self.update_all()
@@ -1563,7 +1554,8 @@ class DetailPage(wx.Dialog):
 
     def add_sub_action_change_tick(self, evt):
         default_action = {'type': 'change', 'target': 'self',
-                          'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id'}
+                          'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id',
+                        'blocked': 'False', 'reversed': -1}
 
         self.current_item[self.last_item].append(default_action)
         self.update_all()
@@ -1613,6 +1605,13 @@ class DetailPage(wx.Dialog):
             except TypeError:
                 self.current_item[self.last_item] = value
 
+        # Check if is sub action and add reversed and blocked if not present
+        if 'target' in self.current_item[self.last_item]:
+            if 'reversed' not in self.current_item[self.last_item]:
+                self.current_item[self.last_item]['reversed'] = -1
+            if 'blocked' not in self.current_item[self.last_item]:
+                self.current_item[self.last_item]['blocked'] = 'False'
+
         cur_name = self.name_ctrl.GetValue()
 
         if self.is_unit_action:
@@ -1623,7 +1622,6 @@ class DetailPage(wx.Dialog):
             elif int(cur_name) != self.last_item and type(self.last_item) == int:  
                 self.current_item[int(cur_name)] = self.current_item[self.last_item]
                 del self.current_item[self.last_item]
-
 
         self.update_all()
 

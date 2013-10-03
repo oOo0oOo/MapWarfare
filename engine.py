@@ -304,7 +304,8 @@ class MapWarfare:
                                     'Probably not enough money...', 'popup': True}}
         return msg_stack
 
-    def perform_action(self, nickname, action, selection=False, o_id=False, u_id=False, sector=False):
+    def perform_action(self, nickname, action, selection=False, 
+                        o_id=False, u_id=False, sector=False, action_name = False):
         '''Returns a report about performed changes or added units:
         tuple(result_type, {changes}), result type can be new, change or False'''
 
@@ -460,6 +461,9 @@ class MapWarfare:
             return ['new', {player: {action['level']: action['parameters']}}]
 
         elif action['type'] == 'change':
+            is_self = action['target'] == 'self' and type(o_id) == int
+            is_own_enemy = action['target'] in ('own', 'enemy')
+
             if action['level'] == 'player':
                 if action['target'] == 'own':
                     player = nickname
@@ -483,63 +487,99 @@ class MapWarfare:
 
                 return ['change', {player: collected_changes}]
 
-            elif action['target'] == 'self' and type(o_id) == int:
-                if type(u_id) == int:
-                    adress = (o_id, u_id)
-                else:
-                    adress = tuple([o_id])
-                make_changes(nickname, adress, copy.deepcopy(action['changes']))
-
-                performed_changes[1] = dict(performed_changes[1])
-                return performed_changes
-
-            elif action['target'] in ('own', 'enemy'):
-                # Collect all the involved adresses
-                if action['target'] == 'own':
-                    pl = self.players[nickname]
-                    player = nickname
-                else:
-                    player = selection['enemy']
-                    pl = self.players[player]
-
-                if action['num_units'] == 'all':
-                    adresses = []
-                    for g_id in pl['groups']:
-                        for u_id in pl['groups'][g_id]['units']:
-                            adresses.append((g_id, u_id))
-                    for o_type in ['transporter', 'buildings']:
-                        for o_id in pl[o_type].keys():
-                            adresses.append(tuple([o_id]))
-                else:
-                    if action['target'] == 'own':
-                        adresses = selection['own_selection']
+            elif is_self or is_own_enemy:
+                if is_self:
+                    if type(u_id) == int:
+                        adresses = [(o_id, u_id)]
                     else:
+                        adresses = [tuple([o_id])]
+                    player = nickname
+
+                elif is_own_enemy:
+                    # Collect all the involved adresses
+                    if action['target'] == 'own':
+                        pl = self.players[nickname]
+                        player = nickname
+                    else:
+                        player = selection['enemy']
+                        pl = self.players[player]
+
+                    if action['num_units'] == 'all':
                         adresses = []
-                        o_ids = selection['enemy_selection']
-                        for o_id in o_ids:
-                            if o_id in pl['groups'].keys():
-                                for u_id in pl['groups'][o_id]['units'].keys():
-                                    adresses.append((o_id, u_id))
-                            else:
+                        for g_id in pl['groups']:
+                            for u_id in pl['groups'][g_id]['units']:
+                                adresses.append((g_id, u_id))
+                        for o_type in ['transporter', 'buildings']:
+                            for o_id in pl[o_type].keys():
                                 adresses.append(tuple([o_id]))
+                    else:
+                        if action['target'] == 'own':
+                            adresses = selection['own_selection']
+                        else:
+                            adresses = []
+                            o_ids = selection['enemy_selection']
+                            for o_id in o_ids:
+                                if o_id in pl['groups'].keys():
+                                    for u_id in pl['groups'][o_id]['units'].keys():
+                                        adresses.append((o_id, u_id))
+                                else:
+                                    adresses.append(tuple([o_id]))
 
-                    # If too many units: remove random units
-                    while 0 < len(adresses) > action['num_units'] and not action['num_units'] == 'all':
-                        ind = random.randrange(len(adresses))
-                        adresses.pop(ind)
+                        # If too many units: remove random units
+                        while 0 < len(adresses) > action['num_units'] and not action['num_units'] == 'all':
+                            ind = random.randrange(len(adresses))
+                            adresses.pop(ind)
 
-                    # If not enough duplicate random units
-                    orig_adresses = adresses[:]
-                    while 0 < len(adresses) < action['num_units'] and not action['num_units'] == 'all':
-                        ind = random.randrange(len(orig_adresses))
-                        adresses.append(orig_adresses[ind])
+                        # If not enough duplicate random units
+                        orig_adresses = adresses[:]
+                        while 0 < len(adresses) < action['num_units'] and not action['num_units'] == 'all':
+                            ind = random.randrange(len(orig_adresses))
+                            adresses.append(orig_adresses[ind])
 
                 # Perform all the changes
                 for adress in adresses:
                     make_changes(player, adress, copy.deepcopy(action['changes']))
 
+                    # Check if action is reverted
+                    if 'reversed' in action.keys() and 'blocked' in action.keys():
+                        if action['reversed'] > -1:
+                            # Create the time dependent action to revert the changes
+                            params = {p: -1.0 * v for p, v in action['changes'].items() if type(v) in (int, float)}
+                            
+                            reverse_action = {'type': 'change', 'target': 'self', 
+                                            'random': 0, 'changes': params, 
+                                            'num_units': 0, 'level': 'id'}
+
+                            # Check if action is blocked during this time
+                            if action['blocked'] == 'True' and action_name:
+
+                                # Get the action
+                                pl = self.players[player]
+
+                                o_id = adress[0]
+                                if o_id in pl['groups'].keys():
+                                    u = pl['groups'][o_id]['units'][adress[1]]
+                                elif o_id in pl['transporter'].keys():
+                                    u = pl['transporter'][o_id]
+                                elif o_id in pl['buildings'].keys():
+                                    u = pl['buildings'][o_id]
+                                else:
+                                    u = False
+
+                                if u:
+                                    orig_action = u['parameters']['actions'][action_name]
+                                    reverse_action['changes']['actions'] = {action_name: orig_action}
+                                    del u['parameters']['actions'][action_name]
+
+                            templ_action = {'time_dependent_actions': {action['reversed']: [reverse_action]}}
+                            make_changes(player, adress, templ_action)
+
+
                 performed_changes[1] = dict(performed_changes[1])
+
+
                 return performed_changes
+
 
         performed_changes[1] = dict(performed_changes[1])
         return performed_changes
@@ -608,8 +648,8 @@ class MapWarfare:
             changes_stack = []
 
             for act in action['actions']:
-                res = self.perform_action(
-                    nickname, act, selection, o_id, u_id, sector)
+                res = self.perform_action(nickname, act, selection, 
+                        o_id, u_id, sector, action_name)
 
                 changes_stack.append(res)
 
@@ -1432,7 +1472,7 @@ class MapWarfare:
         # Check all sectors (could be changed only involved sectors)
         self.check_sectors()
 
-        # Pretty print surviving units (can be returned to player)
+        # Create fight message (and surviving units)
         units = {'starters': [], 'enemies': []}
 
         for team, inv in [('starters', starters), ('enemies', enemies)]:

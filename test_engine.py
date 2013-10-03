@@ -138,7 +138,7 @@ class TestSimpleActions(unittest.TestCase):
             ('account', 100),
             ('victory_points', 10),
             ('account', 99.0),
-            ('victory_points', 10.0),
+            ('victory_points', 11.0),
         ]
 
         for param, value in tests:
@@ -155,6 +155,9 @@ class TestSimpleActions(unittest.TestCase):
             self.assertEqual(game.players['a'][param], param_before + value)
 
     def test_change_normal(self):
+
+        # IMPLEMENT: Test adding unit actions.
+        
         test_changes = [{'attack_min': 100, 'attack_max': -10},
                         {'max_life': 100, 'attack_max': -2, 'life': 50},
                         {'elite': 1, 'delay_shoot': -3, 'delay_walk': -2},
