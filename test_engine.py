@@ -139,6 +139,8 @@ class TestSimpleActions(unittest.TestCase):
             ('victory_points', 10),
             ('account', 99.0),
             ('victory_points', 11.0),
+            ('victory_points', -11.0),
+            ('account', -35.0),
         ]
 
         for param, value in tests:
@@ -153,6 +155,33 @@ class TestSimpleActions(unittest.TestCase):
             s = game.perform_action('a', action)
             self.assertTrue(s)
             self.assertEqual(game.players['a'][param], param_before + value)
+
+    def test_action_kill_unit(self):
+        selection = {'own_selection': [(1, 0), (1, 1), (1, 2)],
+                     'enemy': 'b', 'enemy_selection': [1]}
+
+        par = game_parameters['unit_parameters']
+
+        for o_id, u_id in selection['own_selection']:
+            for param in ('life', 'max_life'):
+                game = self.construct_game()
+
+                u = game.players['a']['groups'][o_id]['units'][u_id]
+
+                action = {
+                    'type': 'change', 'target': 'own', 'level': 'id', 
+                    'random': 0.0, 'num_units': 3, 
+                    'changes': {param: -1 * int(u['parameters'][param])}
+                }
+
+                success = game.perform_action('a', action, copy.deepcopy(selection))
+                self.assertTrue(success)
+
+                try:
+                    game.players['a']['groups'][o_id]['units'][u_id]['parameters'][param]
+                    raise RuntimeError
+                except KeyError:
+                    pass
 
     def test_change_normal(self):
 

@@ -314,27 +314,24 @@ class MapWarfare:
         def make_changes(player, adress, changes):
             # decide which unit type is involved
             o_type = False
-            if len(adress) == 2:
-                # A Unit
-                o_id, u_id = adress
-                try:
-                    u = self.players[player]['groups'][o_id]['units'][u_id]
-                except KeyError:
-                    return
+            pl = self.players[player]
+
+            o_id = adress[0]
+            if o_id in pl['groups'].keys():
+                u_id = adress[1]
+                u = pl['groups'][o_id]['units'][u_id]
                 o_type = 'groups'
-
+            elif o_id in pl['transporter'].keys():
+                u = pl['transporter'][o_id]
+                o_type = 'transporter'
+            elif o_id in pl['buildings'].keys():
+                u = pl['buildings'][o_id]
+                o_type = 'buildings'
             else:
-                o_id = adress[0]
-                if o_id in self.players[player]['transporter'].keys():
-                    u = self.players[player]['transporter'][o_id]
-
-                elif o_id in self.players[player]['buildings'].keys():
-                    u = self.players[player]['buildings'][o_id]
-                else:
-                    return
+                return
 
             # Not nice ... but its necessary to add the player to the adress
-            # Should only be needed fro performed actions from now on
+            # Should only be needed for performed actions from now on
             adress = tuple([player] + [l for l in adress])
 
             # Make changes (always do max_life first)
@@ -345,12 +342,12 @@ class MapWarfare:
                     change, action['random'] * change), 0)
 
                 if (u['parameters']['max_life'] + new_change) <= 0:
-                    del u
-                    if o_type == 'groups' and len(self.players[nickname]['groups'][o_id]['units']) == 0:
-                        del self.players[nickname]['groups'][o_id]
-
-                    performed_changes[1][adress].update({'max_life': new_change})
-                    return
+                    if o_type == 'groups':
+                        del self.players[nickname]['groups'][o_id]['units'][u_id]
+                        if len(self.players[nickname]['groups'][o_id]['units']) == 0:
+                            del self.players[nickname]['groups'][o_id]
+                    else:
+                        del self.players[nickname][o_type][o_id]
 
                 else:
                     u['parameters']['max_life'] += new_change
@@ -377,10 +374,15 @@ class MapWarfare:
 
                 new_change = round(random.normalvariate(
                     change, action['random'] * change), 0)
+
                 if (u['parameters']['life'] + new_change) <= 0:
-                    del u
-                    if o_type == 'groups' and len(self.players[nickname]['groups'][o_id]['units']) == 0:
-                        del self.players[nickname]['groups'][o_id]
+                    if o_type == 'groups':
+                        del self.players[nickname]['groups'][o_id]['units'][u_id]
+                        if len(self.players[nickname]['groups'][o_id]['units']) == 0:
+                            del self.players[nickname]['groups'][o_id]
+                    else:
+                        del self.players[nickname][o_type][o_id]
+
                     performed_changes[1][adress].update({'life': new_change})
                     return
 
@@ -720,8 +722,13 @@ class MapWarfare:
                 # Ignore the c_type for now
                 for p, v in changes:
                     if p == 'actions':
-                        p = 'new actions:'
+                        p = 'Unit Actions:'
                         v = ', '.join(v.keys())
+
+                    elif p == 'time_dependent_actions':
+                        p = 'Actions in '
+                        v = ', '.join([str(a) for a in v.keys()])
+                        v += ' ticks'
 
                     elif p == 'shop_units':
                         p = 'Sells: '
