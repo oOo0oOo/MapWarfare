@@ -63,6 +63,8 @@ class ConfigurationHelper(wx.Dialog):
         self.main_sizer.AddSpacer(10)
 
         self.card_btns = {}
+        self.del_btns = {}
+        self.del_cat_btns = {}
         self.unit_btns = {}
         self.unit_sizer = wx.FlexGridSizer(3, 10)
 
@@ -110,29 +112,25 @@ class ConfigurationHelper(wx.Dialog):
         self.main_sizer.Add(btn_sizer)
         self.main_sizer.AddSpacer(25)
 
+        sec_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         engine_btn = wx.Button(self.scroll_panel, -1, 'Engine Parameters')
-        self.main_sizer.Add(engine_btn)
+        sec_sizer.Add(engine_btn, 0, wx.LEFT, 5)
         engine_btn.Bind(wx.EVT_BUTTON, self.on_engine_parameters)
 
-        self.main_sizer.AddSpacer(15)
-
         sector_btn = wx.Button(self.scroll_panel, -1, 'Sector Weights')
-        self.main_sizer.Add(sector_btn)
+        sec_sizer.Add(sector_btn, 0, wx.LEFT, 5)
         sector_btn.Bind(wx.EVT_BUTTON, self.on_sector)
 
-        self.main_sizer.AddSpacer(15)
-
-        add_cateogry_btn = wx.Button(
-            self.scroll_panel, -1, 'Add Card Category')
-        self.main_sizer.Add(add_cateogry_btn)
+        add_cateogry_btn = wx.Button(self.scroll_panel, -1, 'Add Card Category')
+        sec_sizer.Add(add_cateogry_btn, 0, wx.LEFT, 5)
         add_cateogry_btn.Bind(wx.EVT_BUTTON, self.add_card_category)
 
-        self.main_sizer.AddSpacer(15)
-
         add_card_btn = wx.Button(self.scroll_panel, -1, 'Add Card')
-        self.main_sizer.Add(add_card_btn)
+        sec_sizer.Add(add_card_btn, 0, wx.LEFT, 5)
         add_card_btn.Bind(wx.EVT_BUTTON, self.add_card)
 
+        self.main_sizer.Add(sec_sizer)
         self.main_sizer.AddSpacer(25)
         self.main_sizer.Add(wx.StaticText(self.scroll_panel, -1, 'All Units'))
         self.main_sizer.Add(self.unit_sizer)
@@ -221,13 +219,27 @@ class ConfigurationHelper(wx.Dialog):
             for btn in cat.values():
                 btn.Destroy()
 
+        for cat in self.del_btns.values():
+            for btn in cat.values():
+                btn.Destroy()
+
+        for btn in self.del_cat_btns.values():
+            try:
+                btn.Destroy()
+            except:
+                pass
+
         for text in self.texts.values():
-            text.Destroy()
+            try:
+                text.Destroy()
+            except:
+                pass
 
         self.unit_btns = {}
         self.transporter_btns = {}
         self.building_btns = {}
         self.card_btns = {}
+        self.del_btns = {}
         self.card_sizers = {}
 
         for u_id, unit in self.game_parameters['unit_parameters'].items():
@@ -256,16 +268,29 @@ class ConfigurationHelper(wx.Dialog):
 
             self.texts[cat] = wx.StaticText(
                 self.scroll_panel, -1, 'Category {0}$'.format(cat))
+            self.del_cat_btns[cat] = wx.Button(self.scroll_panel, -1, 'Delete', name=str(cat))
+            self.del_cat_btns[cat].Bind(wx.EVT_BUTTON, self.on_del_cat)
+
             self.card_sizers[cat].Add(self.texts[cat])
+            self.card_sizers[cat].Add(self.del_cat_btns[cat])
 
             count = 0
             self.card_btns[cat] = {}
+            self.del_btns[cat] = {}
             for card in cards:
-                self.card_btns[cat][count] = wx.Button(
-                    self.scroll_panel, -1, card['title'], name=str(cat) + '<>' + str(count))
-                self.card_sizers[cat].Add(self.card_btns[cat][count])
-                self.card_btns[cat][count].Bind(
-                    wx.EVT_BUTTON, self.on_card_click)
+                hor = wx.BoxSizer(wx.HORIZONTAL)
+                self.card_btns[cat][count] = wx.Button(self.scroll_panel, -1, 
+                            card['title'], name=str(cat) + '<>' + str(count))
+                hor.Add(self.card_btns[cat][count], 0, wx.LEFT, 10)
+                self.card_btns[cat][count].Bind(wx.EVT_BUTTON, self.on_card_click)
+
+                self.del_btns[cat][count] = wx.Button(
+                    self.scroll_panel, -1, '-', name=str(cat) + '<>' + str(count), size = (20, 20))
+                hor.Add(self.del_btns[cat][count], 0, wx.LEFT, 10)
+                self.del_btns[cat][count].Bind(wx.EVT_BUTTON, self.on_card_del)
+
+                self.card_sizers[cat].Add(hor)
+
                 count += 1
 
             self.card_sizer.Add(self.card_sizers[cat])
@@ -390,6 +415,19 @@ class ConfigurationHelper(wx.Dialog):
 
         self.update_buttons()
 
+    def on_card_del(self, evt):
+        category, number = evt.GetEventObject().GetName().split('<>')
+        del self.game_parameters['card_parameters'][int(category)][int(number)]
+        self.update_buttons()
+
+    def on_del_cat(self, evt):
+        cat = int(evt.GetEventObject().GetName())
+        del self.game_parameters['card_parameters'][cat]
+        self.del_cat_btns[cat].Destroy()
+        del self.del_cat_btns[cat]
+
+        self.update_buttons()
+
     def on_transporter_click(self, evt):
         ind = int(evt.GetEventObject().GetName())
         transporter = self.game_parameters['transport_parameters'][ind]
@@ -410,6 +448,10 @@ class ConfigurationHelper(wx.Dialog):
             del self.game_parameters['building_parameters'][ind]
         self.update_buttons()
 
+class UnitActionDetail(wx.Dialog):
+    def __init__(self, action):
+        wx.Dialog.__init__(self, None, -1, 'Unit Action Details', size=(664, 468))
+        self.action = action
 
 class ActionDetail(wx.Dialog):
     def __init__(self, action):
@@ -616,6 +658,7 @@ class CardPage(wx.Dialog):
             # Create action button
             self.displayed_actions[a_id] = wx.Button(self.scroll_panel, -1, str(a_id),name=str(a_id))
             self.displayed_actions[a_id].Bind(wx.EVT_BUTTON, self.change_action)
+
             # Create remove button
             self.remove_btns[a_id] = wx.Button(self.scroll_panel, -1, 'Remove: ' + str(a_id), name=str(a_id))
             self.remove_btns[a_id].Bind(wx.EVT_BUTTON, self.remove_action)
@@ -650,7 +693,7 @@ class CardPage(wx.Dialog):
 
         default_new = {'type': 'new', 'level': 'buildings',
                        'parameters': 0, 'target': 'own'}
-                       
+
         dlg = wx.SingleChoiceDialog(
             self, 'Which action type?', 'Choose Action Type', choices=['change', 'new'])
         if dlg.ShowModal():
@@ -670,7 +713,6 @@ class CardPage(wx.Dialog):
                                      [2].GetValue())
 
         self.EndModal(True)
-
 
 class Sectors(wx.Dialog):
     def __init__(self, sectors):
@@ -884,25 +926,25 @@ class DetailPage(wx.Dialog):
                     self.obj['basic_parameters']['max_shield'] = 0
                 pass
 
-        self.action_tree = wx.TreeCtrl(self, -1, size=(300, 350))
+        self.action_tree = wx.TreeCtrl(self, -1, size=(310, 450))
         self.Bind(
             wx.EVT_TREE_SEL_CHANGED, self.on_action_change, self.action_tree)
 
-        self.upgrade_time_tree = wx.TreeCtrl(self, -1, size=(300, 350))
+        self.upgrade_time_tree = wx.TreeCtrl(self, -1, size=(310, 450))
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_time_change,
                   self.upgrade_time_tree)
 
-        self.upgrade_damage_tree = wx.TreeCtrl(self, -1, size=(300, 350))
+        self.upgrade_damage_tree = wx.TreeCtrl(self, -1, size=(310, 450))
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_damage_change,
                   self.upgrade_damage_tree)
 
-        self.top_sizer.AddSpacer(15)
+        self.top_sizer.AddSpacer(10)
         self.top_sizer.Add(self.left_sizer)
-        self.top_sizer.AddSpacer(15)
+        self.top_sizer.AddSpacer(10)
         self.top_sizer.Add(self.action_tree)
-        self.top_sizer.AddSpacer(15)
+        self.top_sizer.AddSpacer(10)
         self.top_sizer.Add(self.upgrade_time_tree)
-        self.top_sizer.AddSpacer(15)
+        self.top_sizer.AddSpacer(10)
         self.top_sizer.Add(self.upgrade_damage_tree)
 
         self.name_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -1842,7 +1884,7 @@ class DetailPage(wx.Dialog):
 
 if __name__ == '__main__':
     app = wx.App(
-        # redirect=True,filename="helper_crash_log.txt"
+        redirect=True,filename="helper_crash_log.txt"
     )
 
     ConfigurationHelper()
