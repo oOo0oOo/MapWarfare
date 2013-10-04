@@ -453,6 +453,128 @@ class UnitActionDetail(wx.Dialog):
         wx.Dialog.__init__(self, None, -1, 'Unit Action Details', size=(664, 468))
         self.action = action
 
+        choices = {'price': False, 'delay': False, 'num_uses': False,
+                'category': ['upgrade', 'shop', 'equipment', 'standard'], 'actions': False}
+
+        self.sub_elements = {}
+        for param, value in self.action.items():
+            if param != 'actions':
+                this = []
+                this.append(wx.BoxSizer(wx.HORIZONTAL))
+                this.append(wx.StaticText(self, -1, param))
+                if choices[param]:
+                    this.append(wx.ComboBox(self, size=(100, 20), choices=choices[param]))
+                    this[2].SetStringSelection(str(value))
+                else:
+                    this.append(wx.TextCtrl(self, -1, str(value), size=(40, 20)))
+                
+                # put them in order, add spacer and add to main sizer
+                this[0].Add(this[1])
+                this[0].AddSpacer(10)
+                this[0].Add(this[2])
+                # Add to sub_element dictionary
+                self.sub_elements[param] = this
+
+        self.add_btn = wx.Button(self, -1, 'Add Action')
+        self.add_btn.Bind(wx.EVT_BUTTON, self.on_add)
+        self.exit_btn = wx.Button(self, -1, 'Exit and Save')
+        self.exit_btn.Bind(wx.EVT_BUTTON, self.on_exit)
+        self.actions_sizer = wx.BoxSizer(wx.VERTICAL)
+        self.init_layout()
+
+    def init_layout(self):
+        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        for param in self.sub_elements.values():
+            main_sizer.Add(param[0])
+
+        main_sizer.Add(self.exit_btn)
+        main_sizer.Add(self.add_btn)
+
+        top_sizer.Add(main_sizer)
+        top_sizer.AddSpacer(15)
+        top_sizer.Add(self.actions_sizer)
+
+        self.SetSizer(top_sizer)
+        self.update_actions()
+
+    def update_actions(self):
+        self.actions_sizer.Clear(True)
+        self.actions = {}
+        for ind, value in enumerate(self.action['actions']):
+            ind = str(ind)
+            # Create the sizer, label and textcntrl
+            this = []
+            this.append(wx.BoxSizer(wx.HORIZONTAL))
+            
+            btn = wx.Button(self, -1, 'Action ' + ind, name = ind)
+            btn.Bind(wx.EVT_BUTTON, self.on_action)
+            this.append(btn)
+
+            this.append(wx.Button(self, -1, 'Remove', name = ind))
+            this[2].Bind(wx.EVT_BUTTON, self.on_remove)
+
+            # put them in order, add spacer and add to main sizer
+            this[0].Add(this[1])
+            this[0].AddSpacer(10)
+            this[0].Add(this[2])
+
+            self.actions_sizer.Add(this[0])
+            # Add to sub_element dictionary
+            self.actions[int(ind)] = this
+
+        self.Layout()
+
+    def on_add(self, evt):
+        default_change = {'type': 'change', 'target': 'own',
+                        'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id',
+                        'blocked': 'False', 'reversed': -1}
+
+        default_new = {'type': 'new', 'level': 'buildings',
+                       'parameters': 0, 'target': 'own'}
+
+        dlg = wx.SingleChoiceDialog(self, 'Which action type?', 'Choose Action Type', 
+                            choices=['change', 'new'])
+        if dlg.ShowModal():
+            choice = dlg.GetStringSelection()
+            if choice == 'new':
+                self.action['actions'].append(default_new)
+            elif choice == 'change':
+                self.action['actions'].append(default_change)
+
+        self.update_actions()
+
+    def on_remove(self, evt):
+        ind = int(evt.GetEventObject().GetName())
+        del self.action['actions'][ind]
+        self.update_actions()
+
+    def on_action(self, evt):
+        ind = int(evt.GetEventObject().GetName())
+        action = self.action['actions'][ind]
+        dlg = ActionDetail(action)
+        if dlg.ShowModal():
+            self.action['changes']['actions'][ind] = dlg.action
+
+    def on_exit(self, evt):
+        for param, val in self.sub_elements.items():
+            if param in ('price', 'delay', 'num_uses'):
+                value = val[2].GetValue()
+                self.action[param] = int(value)
+            else:
+                value = val[2].GetStringSelection()
+                self.action[param] = str(value)                
+
+        try:
+            for par, items in self.changes.items():
+                value = int(items[2].GetValue())
+                self.action['actions'][par] = value
+        except AttributeError:
+            pass
+
+        self.EndModal(True)
+
 class ActionDetail(wx.Dialog):
     def __init__(self, action):
         wx.Dialog.__init__(self, None, -1, 'Action Details', size=(664, 468))
@@ -518,33 +640,57 @@ class ActionDetail(wx.Dialog):
         self.update_changes()
 
     def update_changes(self):
+
+        def add_element(text, ind, val = False):
+            # Create the sizer, label and textcntrl
+            this = []
+            this.append(wx.BoxSizer(wx.HORIZONTAL))
+
+            if type(val) == str:
+                this.append(wx.StaticText(self, -1, text))
+                this.append(wx.TextCtrl(self, -1, val, size=(40, 20)))
+                next = 3
+            else:
+                btn = wx.Button(self, -1, 'Unit Action: ' + text, name = ind)
+                btn.Bind(wx.EVT_BUTTON, self.click_unit_action)
+                this.append(btn)
+                next = 2
+
+            this.append(wx.Button(self, -1, 'Remove', name=ind))
+            this[next].Bind(wx.EVT_BUTTON, self.on_remove)
+
+            # put them in order, add spacer and add to main sizer
+            this[0].Add(this[1])
+            this[0].AddSpacer(10)
+
+            if next == 3:
+                this[0].Add(this[2])
+                this[0].AddSpacer(10)
+
+            this[0].Add(this[next])
+
+            self.changes_sizer.Add(this[0])
+            # Add to sub_element dictionary
+            self.changes[param] = this
+        
         if self.is_change:
             self.changes_sizer.Clear(True)
             self.changes = {}
             for param, value in sorted(self.action['changes'].items()):
-                # Create the sizer, label and textcntrl
-                this = []
-                this.append(wx.BoxSizer(wx.HORIZONTAL))
-                this.append(wx.StaticText(self, -1, str(param)))
-                this.append(wx.TextCtrl(self, -1, str(value), size=(40, 20)))
-                this.append(wx.Button(self, -1, 'Remove', name=str(param)))
-                this[3].Bind(wx.EVT_BUTTON, self.on_remove)
+                if param not in ('actions'):
+                    text = str(param)
+                    val = str(value)
+                    add_element(text, text, val)
 
-                # put them in order, add spacer and add to main sizer
-                this[0].Add(this[1])
-                this[0].AddSpacer(10)
-                this[0].Add(this[2])
-                this[0].AddSpacer(10)
-                this[0].Add(this[3])
-                self.changes_sizer.Add(this[0])
-                # Add to sub_element dictionary
-                self.changes[param] = this
+                elif param == 'actions':
+                    for name in value.keys():
+                        add_element(name, name)
 
         self.Layout()
 
     def on_add(self, evt):
         choices = [
-            'max_life', 'life', 'shield', 'capacity', 'delay', 'delay_in', 'delay_out', 'attack_min', 'attack_max',
+            'New Unit Action', 'max_life', 'life', 'shield', 'capacity', 'delay', 'delay_in', 'delay_out', 'attack_min', 'attack_max',
             'num_enemies', 'shield_factor', 'shoot_dist', 'delay_shoot', 'walk_dist', 'delay_walk', 'elite', 'account']
 
         dlg = wx.SingleChoiceDialog(
@@ -552,13 +698,45 @@ class ActionDetail(wx.Dialog):
             'Add Parameter', choices=choices)
         if dlg.ShowModal():
             param = dlg.GetStringSelection()
-            self.action['changes'][param] = 0
+
+            if param == 'New Unit Action':
+                name_dlg = wx.TextEntryDialog(self,
+                    'What is the name of the new unit action?',
+                    'Unit Action Name')
+                if name_dlg.ShowModal():
+                    name = name_dlg.GetValue()
+
+                    default_action = {'price': 0, 'delay': 0, 'num_uses': -1,
+                          'category': 'standard', 'actions': []}
+
+                    if 'actions' not in self.action['changes'].keys():
+                        self.action['changes']['actions'] = {}
+                    print 'before', self.action['changes']['actions']
+                    self.action['changes']['actions'].update({name: default_action})   
+                    print 'after', self.action['changes']['actions']
+
+            else:
+                self.action['changes'][param] = 0
             self.update_changes()
 
     def on_remove(self, evt):
         param = evt.GetEventObject().GetName()
-        del self.action['changes'][param]
+        params = self.action['changes']
+        if param in params.keys():
+            del self.action['changes'][param]
+        elif 'actions' in params:
+            if param in params['actions'].keys():
+                del self.action['changes']['actions'][param]
+
         self.update_changes()
+
+    def click_unit_action(self, evt):
+        name = evt.GetEventObject().GetName()
+        print self.action['changes']['actions'].keys()
+        action = self.action['changes']['actions'][name]
+        dlg = UnitActionDetail(action)
+        if dlg.ShowModal():
+            self.action['changes']['actions'][name] = dlg.action
 
     def on_exit(self, evt):
         for param, val in self.sub_elements.items():
