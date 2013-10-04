@@ -9,7 +9,7 @@ from configuration_tester import FightTester as Tester
 class ConfigurationHelper(wx.Dialog):
     def __init__(self, filename = '', game_parameters = {}):
         wx.Dialog.__init__(
-            self, None, title='Uster Wars Configuration Helper', size=(1330, 700))
+            self, None, title = 'Uster Wars Configuration Helper', size=(1330, 700))
         self.top_sizer = wx.BoxSizer(wx.VERTICAL)
         self.scroll_panel = scrolled.ScrolledPanel(
             self, -1, size=(1300, 670))
@@ -424,22 +424,22 @@ class ActionDetail(wx.Dialog):
             self.is_change = False
 
         choices = {
-        'type': ['new', 'change'],
         'target': ['own', 'enemy'],
         'level': ['id', 'groups', 'buildings', 'transporter', 'player'],
-        'num_units': False, 'random': False
-
+        'reversed': False, 'blocked': False,
+        'num_units': False, 'random': False,
+        'parameters': False, 'type': False
         }
 
         for param, value in action.items():
-            if param not in ('changes'):
+            if param not in ('changes', 'blocked', 'type'):
                 # Create the sizer, label and textcntrl
                 this = []
                 this.append(wx.BoxSizer(wx.HORIZONTAL))
                 this.append(wx.StaticText(self, -1, param))
                 if choices[param]:
                     this.append(wx.ComboBox(self, size=(100, 20), choices=choices[param]))
-                    this[2].SetStringSelection(value)
+                    this[2].SetStringSelection(str(value))
                 else:
                     this.append(wx.TextCtrl(self, -1, str(value), size=(40, 20)))
                 
@@ -465,7 +465,8 @@ class ActionDetail(wx.Dialog):
             main_sizer.Add(param[0])
 
         main_sizer.Add(self.exit_btn)
-        main_sizer.Add(self.add_btn)
+        if self.is_change:
+            main_sizer.Add(self.add_btn)
 
         top_sizer.Add(main_sizer)
         top_sizer.AddSpacer(15)
@@ -501,7 +502,7 @@ class ActionDetail(wx.Dialog):
 
     def on_add(self, evt):
         choices = [
-            'max_life', 'life', 'shield', 'capacity', 'delay_in', 'delay_out', 'attack_min', 'attack_max',
+            'max_life', 'life', 'shield', 'capacity', 'delay', 'delay_in', 'delay_out', 'attack_min', 'attack_max',
             'num_enemies', 'shield_factor', 'shoot_dist', 'delay_shoot', 'walk_dist', 'delay_walk', 'elite', 'account']
 
         dlg = wx.SingleChoiceDialog(
@@ -519,7 +520,11 @@ class ActionDetail(wx.Dialog):
 
     def on_exit(self, evt):
         for param, val in self.sub_elements.items():
-            value = val[2].GetStringSelection()
+            if param in ('random', 'num_units', 'reversed', 'parameters'):
+                value = val[2].GetValue()
+            else:
+                value = val[2].GetStringSelection()
+
             if param == 'random':
                 self.action[param] = float(value)
             else:
@@ -528,11 +533,14 @@ class ActionDetail(wx.Dialog):
                 except ValueError:
                     self.action[param] = str(value)
 
-        for par, items in self.changes.items():
-            value = int(items[2].GetValue())
-            self.action['changes'][par] = value
-        self.EndModal(True)
+        try:
+            for par, items in self.changes.items():
+                value = int(items[2].GetValue())
+                self.action['changes'][par] = value
+        except AttributeError:
+            pass
 
+        self.EndModal(True)
 
 class CardPage(wx.Dialog):
     def __init__(self, card):
@@ -602,14 +610,22 @@ class CardPage(wx.Dialog):
         self.action_sizer.Clear(True)
 
         self.displayed_actions = {}
+        self.remove_btns = {}
 
         for a_id in range(len(self.card['actions'])):
-            self.displayed_actions[a_id] = wx.Button(
-                self.scroll_panel, -1, str(self.card['actions'][a_id]),
-                name=str(a_id))
-            self.displayed_actions[a_id].Bind(wx.EVT_BUTTON,
-                                              self.change_action)
-            self.action_sizer.Add(self.displayed_actions[a_id])
+            # Create action button
+            self.displayed_actions[a_id] = wx.Button(self.scroll_panel, -1, str(a_id),name=str(a_id))
+            self.displayed_actions[a_id].Bind(wx.EVT_BUTTON, self.change_action)
+            # Create remove button
+            self.remove_btns[a_id] = wx.Button(self.scroll_panel, -1, 'Remove: ' + str(a_id), name=str(a_id))
+            self.remove_btns[a_id].Bind(wx.EVT_BUTTON, self.remove_action)
+
+            hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            hor_sizer.Add(self.displayed_actions[a_id], 0, wx.LEFT, 5)
+            hor_sizer.Add(self.remove_btns[a_id], 0, wx.LEFT, 10)
+            hor_sizer.Add(wx.StaticText(self.scroll_panel, -1, str(self.card['actions'][a_id])))
+
+            self.action_sizer.Add(hor_sizer, 0, wx.BOTTOM, 10)
             self.action_sizer.AddSpacer(10)
 
         self.scroll_panel.FitInside()
@@ -620,14 +636,21 @@ class CardPage(wx.Dialog):
         dlg = ActionDetail(action)
         if dlg.ShowModal():
             self.card['actions'][name] = dlg.action
+        self.update_actions()
+
+    def remove_action(self, evt):
+        num = int(evt.GetEventObject().GetName())
+        del self.card['actions'][num]
+        self.update_actions()
 
     def on_add(self, evt):
-        default_change = {'type': 'change', 'target': 'self',
+        default_change = {'type': 'change', 'target': 'own',
                           'random': 0, 'changes': {}, 'num_units': 0, 'level': 'id',
                         'blocked': 'False', 'reversed': -1}
 
         default_new = {'type': 'new', 'level': 'buildings',
                        'parameters': 0, 'target': 'own'}
+                       
         dlg = wx.SingleChoiceDialog(
             self, 'Which action type?', 'Choose Action Type', choices=['change', 'new'])
         if dlg.ShowModal():
