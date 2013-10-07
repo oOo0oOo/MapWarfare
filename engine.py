@@ -117,7 +117,7 @@ class MapWarfare:
             self.new_transporter(nickname, 1, hq_sector, 'Heli', False)    
 
         # Other player (when playing alone)
-        # self.new_player('punch_me', 10) 
+        self.new_player('punch_me', 10) 
         
 
         title = 'Hi {0}!'.format(nickname)

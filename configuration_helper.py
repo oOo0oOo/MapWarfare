@@ -690,8 +690,8 @@ class ActionDetail(wx.Dialog):
 
     def on_add(self, evt):
         choices = [
-            'New Unit Action', 'max_life', 'life', 'shield', 'capacity', 'delay', 'delay_in', 'delay_out', 'attack_min', 'attack_max',
-            'num_enemies', 'shield_factor', 'shoot_dist', 'delay_shoot', 'walk_dist', 'delay_walk', 'elite', 'account']
+            'New Unit Action', 'max_life', 'life', 'max_shield', 'shield', 'capacity', 'delay', 'delay_in', 'delay_out', 'attack_min', 'attack_max',
+            'num_enemies', 'shield_factor', 'shoot_dist', 'delay_shoot', 'walk_dist', 'delay_walk', 'elite', 'account', 'victory_points']
 
         dlg = wx.SingleChoiceDialog(
             self, 'Which parameter do you want to add?',
