@@ -766,7 +766,7 @@ class CardPage(wx.Dialog):
     def __init__(self, card):
         self.card = card
         wx.Dialog.__init__(
-            self, None, -1, 'Manage Card Details', size=(664, 468))
+            self, None, -1, 'Manage Card Details', size=(800, 500))
         self.scroll_panel = scrolled.ScrolledPanel(
             self, -1, size=(1300, 670))
 
@@ -783,8 +783,15 @@ class CardPage(wx.Dialog):
                 except ValueError:
                     pass
 
+                if param == 'num_cards':
+                    size = (25, 20)
+                elif param == 'title':
+                    size = (200, 20)
+                elif param == 'description':
+                    size = (700, 20)
+
                 this.append(wx.TextCtrl(
-                    self.scroll_panel, -1, value, size=(100, 20)))
+                    self.scroll_panel, -1, value, size=size))
                 # put them in order, add spacer and add to main sizer
                 this[0].Add(this[1])
                 this[0].AddSpacer(10)
@@ -844,7 +851,13 @@ class CardPage(wx.Dialog):
             hor_sizer = wx.BoxSizer(wx.HORIZONTAL)
             hor_sizer.Add(self.displayed_actions[a_id], 0, wx.LEFT, 5)
             hor_sizer.Add(self.remove_btns[a_id], 0, wx.LEFT, 10)
-            hor_sizer.Add(wx.StaticText(self.scroll_panel, -1, str(self.card['actions'][a_id])))
+
+            #The action description in neat rows
+            l = str(self.card['actions'][a_id])
+            rows = [l[i:i+135] for i in range(0, len(l), 135)]
+            text = '\n'.join(rows[:3]) + ''.join(rows[3:])
+
+            hor_sizer.Add(wx.StaticText(self.scroll_panel, -1, text))
 
             self.action_sizer.Add(hor_sizer, 0, wx.BOTTOM, 10)
             self.action_sizer.AddSpacer(10)
