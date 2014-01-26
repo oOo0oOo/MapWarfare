@@ -6,6 +6,8 @@ from copy import deepcopy
 import wx.lib.scrolledpanel as scrolled
 from configuration_tester import FightTester as Tester
 
+current_dir = os.path.dirname(os.path.realpath(__file__))
+
 class ConfigurationHelper(wx.Dialog):
     def __init__(self, filename = '', game_parameters = {}):
         wx.Dialog.__init__(
@@ -14,11 +16,15 @@ class ConfigurationHelper(wx.Dialog):
         self.scroll_panel = scrolled.ScrolledPanel(
             self, -1, size=(1300, 670))
 
+        # The file loaded for the save function
+        self.file_loaded = False
+
         if game_parameters:
             self.game_parameters = deepcopy(game_parameters)
 
         elif filename:
             self.game_parameters = pickle.load(open(filename, "r"))
+            self.file_loaded = filename
 
         else:
             # All game engine parameters
@@ -100,9 +106,14 @@ class ConfigurationHelper(wx.Dialog):
         btn_sizer.AddSpacer(25)
 
         save_btn = wx.Button(
-            self.scroll_panel, -1, 'Save configuration to file')
+            self.scroll_panel, -1, 'Save')
         save_btn.Bind(wx.EVT_BUTTON, self.save_configuration)
         btn_sizer.Add(save_btn)
+
+        save_as_btn = wx.Button(
+            self.scroll_panel, -1, 'Save as')
+        save_as_btn.Bind(wx.EVT_BUTTON, self.save_configuration_as)
+        btn_sizer.Add(save_as_btn)
 
         load_btn = wx.Button(
             self.scroll_panel, -1, 'Load configuration from file')
@@ -154,7 +165,7 @@ class ConfigurationHelper(wx.Dialog):
         test_btn.Bind(wx.EVT_BUTTON, self.test_configuration)
         self.main_sizer.Add(test_btn)
 
-        start_btn = wx.Button(self.scroll_panel, -1, 'Start Game')
+        start_btn = wx.Button(self.scroll_panel, -1, 'Exit / Start Game')
         start_btn.Bind(wx.EVT_BUTTON, self.start_game)
         self.main_sizer.Add(start_btn)
 
@@ -173,6 +184,15 @@ class ConfigurationHelper(wx.Dialog):
         self.EndModal(True)
 
     def save_configuration(self, evt):
+        if self.file_loaded:
+            pickle.dump(self.game_parameters, open(self.file_loaded, "w"))
+            wx.MessageBox('Successfully saved configuration to file:\n{}'.format(self.file_loaded), 'Saved File',
+                          wx.OK | wx.ICON_INFORMATION)
+        else:
+            wx.MessageBox('Could not save the file...', 'Could Not Save',
+                          wx.OK | wx.ICON_INFORMATION)
+
+    def save_configuration_as(self, evt):
         dlg = wx.FileDialog(
             self, 'Choose a filename', '', '', '*.army', wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
@@ -180,14 +200,20 @@ class ConfigurationHelper(wx.Dialog):
             dirname = dlg.GetDirectory()
             filepath = os.path.join(dirname, filename)
             pickle.dump(self.game_parameters, open(filepath, "w"))
+            self.file_loaded = filepath
+            # Slightly buggy, but then this whole thing is pretty fragile...
+            # current_dir = dirname
 
     def load_configuration(self, evt):
-        dlg = wx.FileDialog(self, 'Choose a file', '', '', '*.army', wx.OPEN)
+        dlg = wx.FileDialog(self, 'Choose a file', current_dir, '', '*.army', wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             dirname = dlg.GetDirectory()
             filepath = os.path.join(dirname, filename)
+
             self.game_parameters = pickle.load(open(filepath, "r"))
+            self.file_loaded = filepath
+
             self.update_buttons()
 
     def on_engine_parameters(self, evt):
@@ -604,6 +630,12 @@ class ActionDetail(wx.Dialog):
                 if choices[param]:
                     this.append(wx.ComboBox(self, size=(100, 20), choices=choices[param]))
                     this[2].SetStringSelection(str(value))
+                elif param == 'parameters':
+                    if type(value) == list:
+                        v = ','.join([str(v) for v in value])
+                    else:
+                        v = str(value)
+                    this.append(wx.TextCtrl(self, -1, v, size=(40, 20)))
                 else:
                     this.append(wx.TextCtrl(self, -1, str(value), size=(40, 20)))
                 
@@ -711,9 +743,7 @@ class ActionDetail(wx.Dialog):
 
                     if 'actions' not in self.action['changes'].keys():
                         self.action['changes']['actions'] = {}
-                    print 'before', self.action['changes']['actions']
                     self.action['changes']['actions'].update({name: default_action})   
-                    print 'after', self.action['changes']['actions']
 
             else:
                 self.action['changes'][param] = 0
@@ -732,7 +762,6 @@ class ActionDetail(wx.Dialog):
 
     def click_unit_action(self, evt):
         name = evt.GetEventObject().GetName()
-        print self.action['changes']['actions'].keys()
         action = self.action['changes']['actions'][name]
         dlg = UnitActionDetail(action)
         if dlg.ShowModal():
@@ -752,6 +781,12 @@ class ActionDetail(wx.Dialog):
                     self.action[param] = int(value)
                 except ValueError:
                     self.action[param] = str(value)
+
+        # parse commas change to list
+        if self.action['type'] == 'new' and self.action['level'] == 'groups':
+            p = self.sub_elements['parameters'][2].GetValue()
+            group = [int(x) for x in p.strip().split(',')]
+            self.action['parameters'] = group
 
         try:
             for par, items in self.changes.items():
@@ -1862,11 +1897,12 @@ class DetailPage(wx.Dialog):
                 self.current_item[self.last_item] = value
 
         # Check if is sub action and add reversed and blocked if not present
-        if 'target' in self.current_item[self.last_item]:
-            if 'reversed' not in self.current_item[self.last_item]:
-                self.current_item[self.last_item]['reversed'] = -1
-            if 'blocked' not in self.current_item[self.last_item]:
-                self.current_item[self.last_item]['blocked'] = 'False'
+        if type(self.last_item) == int:
+            if 'target' in self.current_item[self.last_item]:
+                if 'reversed' not in self.current_item[self.last_item]:
+                    self.current_item[self.last_item]['reversed'] = -1
+                if 'blocked' not in self.current_item[self.last_item]:
+                    self.current_item[self.last_item]['blocked'] = 'False'
 
         cur_name = self.name_ctrl.GetValue()
 
@@ -2075,7 +2111,7 @@ class DetailPage(wx.Dialog):
 
 if __name__ == '__main__':
     app = wx.App(
-        redirect=True,filename="helper_crash_log.txt"
+        #redirect=True,filename="helper_crash_log.txt"
     )
 
     ConfigurationHelper()

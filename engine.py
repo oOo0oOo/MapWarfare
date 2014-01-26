@@ -489,6 +489,7 @@ class MapWarfare:
                         else:
                             new_change = round(change, 0)
 
+                        print player, param, new_change
                         self.players[player][param] += new_change
                         collected_changes[param] = change
 
@@ -717,8 +718,13 @@ class MapWarfare:
 
                 player_msg[send_to] += 'Group {0}'.format(adress[1])
                 if len(adress) == 3:
-                    unit = self.players[send_to]['groups'][adress[1]]['units'][adress[2]]
-                    player_msg[send_to] += ', ' + unit['name']
+                    try:
+                        unit = self.players[send_to]['groups'][adress[1]]['units'][adress[2]]
+                        player_msg[send_to] += ', ' + unit['name']
+
+                    # Except unit is gone...
+                    except KeyError:
+                        pass
 
                 player_msg[send_to] += ':\n'
 

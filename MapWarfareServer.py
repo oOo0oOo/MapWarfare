@@ -264,7 +264,10 @@ class MapWarfareServer(Server):
 
     def update_player_ui(self, player, update_selection=False):
         nickname = str(player.nickname)
-        pl = self.game.players[nickname]
+        try:
+            pl = self.game.players[nickname]
+        except KeyError:
+            return
 
         player.Send({"action": "update_ui", "groups": pl['groups'],
                      'transporter': pl['transporter'], 'buildings': pl['buildings'],
