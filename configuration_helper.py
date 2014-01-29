@@ -133,13 +133,24 @@ class ConfigurationHelper(wx.Dialog):
         sec_sizer.Add(sector_btn, 0, wx.LEFT, 5)
         sector_btn.Bind(wx.EVT_BUTTON, self.on_sector)
 
+        save_sector_btn = wx.Button(self.scroll_panel, -1, 'Save Map')
+        sec_sizer.Add(save_sector_btn, 0, wx.LEFT, 5)
+        save_sector_btn.Bind(wx.EVT_BUTTON, self.save_map)
+
+        load_sector_btn = wx.Button(self.scroll_panel, -1, 'Load Map')
+        sec_sizer.Add(load_sector_btn, 0, wx.LEFT, 5)
+        load_sector_btn.Bind(wx.EVT_BUTTON, self.load_map)
+
+
         add_cateogry_btn = wx.Button(self.scroll_panel, -1, 'Add Card Category')
-        sec_sizer.Add(add_cateogry_btn, 0, wx.LEFT, 5)
+        sec_sizer.Add(add_cateogry_btn, 0, wx.LEFT, 75)
         add_cateogry_btn.Bind(wx.EVT_BUTTON, self.add_card_category)
 
         add_card_btn = wx.Button(self.scroll_panel, -1, 'Add Card')
         sec_sizer.Add(add_card_btn, 0, wx.LEFT, 5)
         add_card_btn.Bind(wx.EVT_BUTTON, self.add_card)
+
+
 
         self.main_sizer.Add(sec_sizer)
         self.main_sizer.AddSpacer(25)
@@ -182,6 +193,23 @@ class ConfigurationHelper(wx.Dialog):
 
     def start_game(self, evt):
         self.EndModal(True)
+
+    def load_map(self, evt):
+        dlg = wx.FileDialog(self, 'Choose a file', current_dir, '', '*.*', wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetFilename()
+            dirname = dlg.GetDirectory()
+            filepath = os.path.join(dirname, filename)
+            self.game_parameters['engine_parameters'] = pickle.load(open(filepath, "r"))
+
+    def save_map(self, evt):
+        dlg = wx.FileDialog(
+            self, 'Choose a filename', '', '', '*.*', wx.SAVE)
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetFilename()
+            dirname = dlg.GetDirectory()
+            filepath = os.path.join(dirname, filename)
+            pickle.dump(self.game_parameters['engine_parameters'], open(filepath, "w"))
 
     def save_configuration(self, evt):
         if self.file_loaded:

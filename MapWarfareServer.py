@@ -104,6 +104,8 @@ class ClientChannel(Channel):
     #
     # Network specific callbacks ###
     #
+    def Network_ping(self, data):
+        self._server.pong(self)
 
     def Network_rename_id(self, data):
         self._server.rename_id(self, data)
@@ -180,13 +182,13 @@ class MapWarfareServer(Server):
         self.game = engine.MapWarfare(game_parameters)
         # Create a wxPython app
         self.wx_app = wx.App(
-            # redirect=True,filename="server_crash_log.txt"
+            #redirect=True,filename="server_crash_log.txt"
         )
         self.init_user_interface()
 
     def configuration_helper(self):
         conf_app = wx.App(
-            # redirect=True,filename="helper_crash_log.txt"
+            #redirect=True,filename="helper_crash_log.txt"
         )
 
         dial = ConfigurationHelper()
@@ -204,11 +206,19 @@ class MapWarfareServer(Server):
         self.frame.Show()
         self.wx_app.Yield()
 
+    def pong(self, channel):
+        # Pong back all player names
+        channel.Send({
+            'action': 'pong',
+            'players': self.game.players.keys()
+            })
+        
+
     def Connected(self, channel, addr):
         self.AddPlayer(channel)
 
     def AddPlayer(self, player):
-        print "New Player" + str(player.addr) + ' ' + asctime()[11:19]
+        print str(player.addr) + ' connected: ' + asctime()[11:19]
         self.players[player] = True
 
     def register_player(self, player, nickname, sector):

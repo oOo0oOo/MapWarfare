@@ -75,6 +75,9 @@ class MapWarfareClient(ConnectionListener):
 
 c = MapWarfareClient('169.254.167.234', 31425)  # 169.254.167.234
 
-while 1:
+quit = False
+while not quit:
     c.Loop()
-    sleep(0.001)
+    sleep(0.0015)
+    if not isinstance(c.wx_app, wx.App):
+        quit=True
